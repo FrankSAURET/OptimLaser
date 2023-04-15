@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespaces/inkscape"
+                   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <name translatable="no">Optimisation pour découpe laser</name>
+    <id>optimize_for_laser_cut</id>
+    <dependency>org.inkscape.script</dependency>
+    <parameter>
+        <name>save_before</name>
+        <type>boolean</type>
+        <label translatable="no">Sauvegarder avant de continuer</label>
+        <default>true</default>
+    </parameter>
+    <parameter>
+        <name>new_name</name>
+        <type>string</type>
+        <label translatable="no">Nouveau nom de fichier</label>
+        <default>-découpe</default>
+    </parameter>
+    <effect>
+        <script>optimize_for_laser_cut.py</script>
+        <menu>Filters</menu>
+    </effect>
+</inkscape-extension>
