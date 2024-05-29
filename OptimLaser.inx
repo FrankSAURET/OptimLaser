@@ -1,19 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension" >
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
 	<name>Optimisation pour découpe laser</name>
 	<id>franksauret.OptimLaser</id>
 	<dependency type="executable" location="extensions">OptimLaser.py</dependency>
-	<label xml:space="preserve">Le fichier actuel va être enregistré et un nouveau fichier va être créé avec "- Decoupe" au bout de son nom. Ce fichier sera largement modifié donc ne travaillez pas dessus par la suite mais repartez toujours de l'original.</label>
-	<spacer/>
-	
-	<label appearance="url">https://github.com/FrankSAURET/OptimLaser</label>
+
+	<param name="tab" type="notebook">
+		<page name="options" gui-text="Options">
+			<param name="Sauvegarde" type="boolean" gui-text="Sauvegarder le fichier original et travailler sur un nouveau fichier avec « - Decoupe » au bout de son nom. Ce fichier sera ouvert à la fin.">true</param>
+			<param name="ToutSelectionner" type="boolean" gui-text="Applique les modifications à tout le document. Si non coché ne les applique qu'à la sélection.">true</param>
+			<separator />
+			<param name="unitinfo" type="description">L'unité utilisé est celle définie pour le document (Fichier > Propriétés du document > Affichage).</param>
+			<hbox>
+				<param name="tolerance" type="float" precision="3" min="0.200" max="100.000" gui-text="Tolérance : ">0.001</param>
+				<spacer size="expand"/>
+			</hbox>
+			<param name="selfPath" type="boolean" gui-text="Inclure la vérification de chaque chemin par rapport à lui-même. Attention : les segments plus petits que la tolérance définie ci-dessus pourraient disparaître.">true</param>
+			<!-- <param name="interp" type="boolean" gui-text="Laisser le segment de ligne restant être une interpolation des segments de ligne correspondants.">false</param> -->
+		</page>
+		<page name="info" gui-text="Information">
+			<param name="infotext" type="description" xml:space="preserve">Pour plus d'informations : </param>
+			<label appearance="url">https://github.com/FrankSAURET/OptimLaser</label>
+			<param name="infotext2" type="description" xml:space="preserve">La fonction remove duplicate utilise maintenant le travail de Ellen Wasbø :</param>
+			<label appearance="url">https://gitlab.com/EllenWasbo/inkscape-extension-removeduplicatelines</label>
+		</page>
+	</param>
+
 	<effect needs-live-preview="false">
 		<object-type>all</object-type>
-        <effects-menu>
-            <submenu _name="Découpe Laser"/>
-        </effects-menu>
+		<effects-menu>
+			<submenu name="Découpe Laser"/>
+		</effects-menu>
 	</effect>
 	<script>
 		<command location="inx" interpreter="python">OptimLaser.py</command>
+		<!-- <command location="inx" interpreter="python">testsauvegarde.py</command> -->
 	</script>
 </inkscape-extension>
