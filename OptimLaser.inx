@@ -15,7 +15,6 @@
 				<spacer size="expand"/>
 			</hbox>
 			<param name="selfPath" type="boolean" gui-text="Inclure la vérification de chaque chemin par rapport à lui-même. Attention : les segments plus petits que la tolérance définie ci-dessus pourraient disparaître.">true</param>
-			<!-- <param name="interp" type="boolean" gui-text="Laisser le segment de ligne restant être une interpolation des segments de ligne correspondants.">false</param> -->
 		</page>
 		<page name="info" gui-text="Information">
 			<param name="infotext" type="description" xml:space="preserve">Pour plus d'informations : </param>

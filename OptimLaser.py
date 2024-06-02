@@ -51,12 +51,14 @@ from inkex.transforms import Transform
 from inkex import bezier, PathElement, CubicSuperPath, Transform
 import numpy as np
 from tkinter import messagebox
+from inkex.paths import Path
 
 
 class OptimLaser(inkex.Effect,inkex.EffectExtension):
     
     def __init__(self):
         self.seen_elems = []
+        self.numeroChemin = 1
         inkex.Effect.__init__(self)
         self.arg_parser.add_argument("--tab",
             type=str, 
@@ -81,36 +83,6 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
             type=inkex.Boolean,
             dest="selfPath",
             default=False)
-        # self.arg_parser.add_argument("-i","--interp",
-        #     type=inkex.Boolean, 
-        #     dest="interp",
-        #     default=False)
-    
-
-        Trouve = 0
-        # Récupération de tous les chemins
-        elems = self.svg.xpath('//svg:path')
-        # Création d'une liste pour stocker les chemins déjà vus
-        seen_elems = []
-        keep_elems = []
-        # Boucle sur tous les chemins
-        somme=0
-        for elem in elems:
-            #inkex.utils.debug(f"elems final: {type(elem)}")
-            # Récupération des données du chemin
-            elem_data = elem.path.to_non_shorthand()
-            # Création d'une clé pour stocker le chemin dans le dictionnaire
-            elem_key = str(elem.path)
-            # Si le chemin a déjà été vu, on le supprime
-            if not elem_key in seen_elems:
-                somme+=1
-                seen_elems.append(elem_key)
-                keep_elems.append(elem)
-
-        elems=keep_elems    
-        for elem in elems:       
-            elem_key = str(elem.path) 
-            #inkex.utils.debug(f"elems final: {elem_key}")
     
     def replace_with_subpaths(self, element):
         # Thank's to Kaalleen on inkscape forum
@@ -124,114 +96,58 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
         parent = element.getparent()
         index = parent.index(element)
                
-        # get style and remove fill, the new elements are strokes
+        # Supprimer le remplissage, les nouveaux éléments sont des traits.
+        # Le noir étant a priori destiné à la gravure, les éléments dont le remplissage est gris garderont leur remplissage.
         style = element.style
-        if not style('stroke', None):
-            style['stroke'] = style('fill', None)
-        style['fill'] = 'none'
+        fill_color = inkex.Color(style('fill', None))
+        r, v, b = fill_color.to_rgb()
+        if r != v or r != b or v != b:
+            if not style('stroke', None):
+                style['stroke'] = style('fill', None)
+            style['fill'] = 'none'
 
-        # path
+        # Supprime les translates
+        if isinstance(element, PathElement) and 'transform' in element.attrib:
+            path = element.path
+            transform = inkex.Transform(element.get('transform'))
+            path = path.transform(transform)
+            del element.attrib['transform']
+            element.path = path
+                
         path = element.path.to_non_shorthand()
-
+        
         if len(path)>0:
-            """
-            # Supprimer les lignes de longueur nulle POURQUOI ???
-            new_path = [path[0]] # récupération du move to initiale
-            for i in range(1, len(path)): # parcours tous les éléments (lettres) du path
-                segment = path[i]
-                segmentPrev = path[i-1]
-                if not isinstance(segmentPrev, inkex.paths.ZoneClose) and not isinstance(segment, inkex.paths.ZoneClose):
-                    segment1 = segment.end_point(None, None)
-                    segmentPrev1 = segmentPrev.end_point(None, None)
-                    Fin = (segment1.x, segment1.y)
-                    Debut = (segmentPrev1.x, segmentPrev1.y)
-                if segment.letter == 'L':
-                    if Fin != Debut:
-                        new_path.append(segment)
-                else:
-                    new_path.append(segment)
-            path = inkex.Path(new_path)
-            """
             # Générer les nouveaux éléments à partir du chemin complet
-            inkex.utils.debug(f"path : {path}")##########
             segments = iter(path)
-            segment = next(segments)
-            start = segment
-            segment = next(segments) # Sauter le premier M
-            end = []
-            end.append(segment)
-            while segment.letter != 'Z' and len(end) > 0:
-                start = start.end_point(None, None)
-                start = inkex.paths.Move(start.x, start.y)
-                segment_path = inkex.Path([start] + end)
-                new_element = inkex.PathElement(d=str(segment_path),
+            segmentPrev = next(segments)
+            Premier = segmentPrev
+            for segment in segments:
+                if segment.letter != 'Z' : # si pas Z crée le chemin
+                    start=segmentPrev.end_point(None, None)
+                    start = inkex.paths.Move(start.x, start.y)
+                    segment_path = inkex.Path([start] + [segment])
+                    segmentPrev = segment
+                else:    # si Z ferme la forme par une ligne droite
+                    debut=(segmentPrev.x, segmentPrev.y)
+                    fin = (Premier.x, Premier.y)
+                    if debut != fin:
+                        start = segmentPrev.end_point(None, None)
+                        start = inkex.paths.Move(start.x, start.y)
+                        segment_path = inkex.Path([start] + [inkex.paths.Line(Premier.x, Premier.y)])
+                # Crée puis insère le nouveau chemin        
+                new_element = inkex.PathElement(id="chemin"+str(self.numeroChemin),
+                                                d=str(segment_path),
                                                 style=str(style),
                                                 transform=str(element.transform))
-                parent.insert(index, new_element)
-            # end = []
-            # try:
-            #     segment = next(segments)
-            #     Premier = segment
-            #     start = segment
-            #     segmentPrev = segment
-            #     segment = next(segments)  # Sauter le premier M
-            #     inkex.utils.debug(f"segment : {segment}")##########
-
-            #     while segment.letter != 'Z':
-            #         end = []
-            #         end.append(segment)
-            #         inkex.utils.debug(f"end : {end}")
-            #         segmentPrev = segment
-            #         segment = next(segments)
-            #         inkex.utils.debug(f"segmentPrev : {segmentPrev}")##########
-            #         inkex.utils.debug(f"segment : {segment}")##########
-            #         if len(end) > 0:    # Si il y a des segments à ajouter les dessinner
-            #             start = start.end_point(None, None)
-            #             start = inkex.paths.Move(start.x, start.y)
-            #             segment_path = inkex.Path([start] + end)
-            #             new_element = inkex.PathElement(d=str(segment_path),
-            #                                             style=str(style),
-            #                                             transform=str(element.transform))
-                    
-            #         self.remove_duplicates(new_element,segment_path,element)
-            #         # inkex.utils.debug(f"Element 1 : {element.path.to_non_shorthand()}")  
+                self.numeroChemin += 1
+                parent.insert(index, new_element) 
+                self.document.getroot().append(new_element)
+                self.svg.selection.add(new_element)
                        
-            #         start = segmentPrev  # Le nouveau segment de départ est le dernier segment de la série précédente
-            #     # Fermer la forme si elle ne l'était pas
-            #     if start.letter != 'C':
-            #         debut = (start.x, start.y)
-            #     else:
-            #         debut = (start.x4, start.y4)
-            #     fin = (Premier.x, Premier.y)
-            #     if debut != fin:
-            #         start = start.end_point(None, None)
-            #         start = inkex.paths.Move(start.x, start.y)
-            #         end = []
-            #         Premier = inkex.paths.Line(Premier.x, Premier.y)
-            #         end.append(Premier)
-            #         segment_path = inkex.Path([start] + end)
-            #         new_element = inkex.PathElement(d=str(segment_path),
-            #                                         style=str(style),
-            #                                         transform=str(element.transform))
-                    
-            #     self.remove_duplicates(new_element,segment_path,element) 
-            #     # inkex.utils.debug(f"Element 2 : {element.path.to_non_shorthand()}")         
-
-            # except StopIteration:  # Si la forme n'est pas fermée par un Z
-            #     pass
-            #     #inkex.utils.debug("=================== Stop itération ===================")  # **********************
-            #     start = start.end_point(None, None)
-            #     start = inkex.paths.Move(start.x, start.y)
-            #     segment_path = inkex.Path([start] + end)
-            #     new_element = inkex.PathElement(d=str(segment_path),
-            #                                     style=str(style),
-            #                                     transform=str(element.transform))
-                
-                # self.remove_duplicates(new_element,segment_path,element)
-                # inkex.utils.debug(f"Element 3 : {element.path.to_non_shorthand()}")    
-                    
-            # remove the original element
+            # supprime l'elément original
             parent.remove(element)
+            # met à jour la sélection
+            self.svg.selection.pop(element.get('id'))
                             
     def remove_duplicates(self):
         tolerance=self.options.tolerance
@@ -241,15 +157,7 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
         subPathNo=[]
         cPathNo=[]#counting alle paths and subpaths equally
         removeSegmentPath=[]
-        removeSegmentSubPath=[]
-        removeSegment_cPath=[]
-        removeSegment=[]
-        matchSegmentPath=[]
-        matchSegmentSubPath=[]
-        matchSegment_cPath=[]
-        matchSegment=[]
-        matchSegmentRev=[]
-        
+         
         nFailed=0
         nInkEffect=0
         p=0
@@ -265,7 +173,7 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                 thisIsPath=False
                 nInkEffect+=1
                 idsNotPath.append(id)
-
+            
             if thisIsPath:
                 #apply transformation matrix if present
                 csp = CubicSuperPath(elem.get('d'))
@@ -300,11 +208,6 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                     c+=1
                     s+=1
                 p+=1
- 
-        if nFailed > 0:
-            messagebox.showwarning('Attention', str(nFailed) + ' éléments sélectionnés n\'avaient pas de chemin. Les groupes, les éléments de forme et le texte seront ignorés.')
-        if nInkEffect > 0:
-            messagebox.showwarning('Attention', str(nInkEffect) + ' éléments sélectionnés ont un effet de chemin Inkscape appliqué. Ces éléments seront ignorés pour éviter des résultats confus. Appliquez Chemins->Objet vers chemin (Shift+Ctrl+C) et réessayez.')        
             
         origCoords=[]
         for item in coords: origCoords.append(np.copy(item))#make a real copy (not a reference that changes with the original
@@ -331,7 +234,6 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                             maxval=subtr.max(1)
                             lessTol=np.argwhere(maxval<tolerance)        
                             matchThis=False
-                            matchThisRev=False
                             finalK=0
                             lesstolc=0
                             if len(lessTol) > 0:#proceed to calculate 2d distance where both x and y distance is less than tolerance
@@ -362,7 +264,6 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                                         dists[3]=np.sqrt(np.add(np.power(subtr[lessTol[c,0]][6],2),np.power(subtr[lessTol[c,0]][7],2)))
                                         if dists.max() < tolerance:
                                             matchThis=True
-                                            matchThisRev=True
                                             finalK=k
                                             lesstolc=lessTol[c]
                                         c+=1
@@ -370,219 +271,48 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                             if matchThis:
                                 coords[finalK][lesstolc,:]=-1000
                                 removeSegmentPath.append(pathNo[finalK])
-                                removeSegmentSubPath.append(subPathNo[finalK])
-                                removeSegment_cPath.append(cPathNo[finalK])
-                                removeSegment.append(lesstolc)
-                                matchSegmentPath.append(pathNo[i])
-                                matchSegmentSubPath.append(subPathNo[i])
-                                matchSegment_cPath.append(cPathNo[i])
-                                matchSegment.append(j)
-                                matchSegmentRev.append(matchThisRev)        
-                                        
                     k+=1
                 j+=1
             i+=1
                 
-        #(interpolate remaining and) remove segments with a match
+        # % Remove segments with a match
         if len(removeSegmentPath) > 0:          
             removeSegmentPath=np.array(removeSegmentPath)
-            removeSegmentSubPath=np.array(removeSegmentSubPath)
-            removeSegment_cPath=np.array(removeSegment_cPath)
-            removeSegment=np.array(removeSegment)
-            matchSegmentPath=np.array(matchSegmentPath)
-            matchSegment_cPath=np.array(matchSegment_cPath)
-            matchSegmentSubPath=np.array(matchSegmentSubPath)
-            matchSegment=np.array(matchSegment)
-            matchSegmentRev=np.array(matchSegmentRev)
 
-            # #first interpolate remaining segment
-            # if self.options.interp:
-            #     idx=np.argsort(matchSegmentPath)
-            #     matchSegmentPath=matchSegmentPath[idx]
-            #     matchSegment_cPath=matchSegment_cPath[idx]
-            #     matchSegmentSubPath=matchSegmentSubPath[idx]
-            #     matchSegment=matchSegment[idx]
-            #     matchSegmentRev=matchSegmentRev[idx]
-            #     remSegmentPath=removeSegmentPath[idx]
-            #     remSegment_cPath=removeSegment_cPath[idx]
-            #     remSegment=removeSegment[idx]
-                
-            #     i=0
-            #     for id, elem in self.svg.selection.id_dict().items():#each path         
-            #         if not id in idsNotPath:
-            #             if i in matchSegmentPath:           
-            #                 idxi=np.argwhere(matchSegmentPath==i)
-            #                 idxi=idxi.reshape(-1)
-            #                 icMatch=matchSegment_cPath[idxi]
-            #                 iSegMatch=matchSegment[idxi]
-            #                 iSegMatchRev=matchSegmentRev[idxi]
-            #                 iSubMatch=matchSegmentSubPath[idxi]
-            #                 iSegRem=remSegment[idxi]
-            #                 icRem=remSegment_cPath[idxi]
-            #                 iPathRem=remSegmentPath[idxi]
-            #                 new=[]
-            #                 j=0
-            #                 for sub in elem.path.to_superpath():#each subpath 
-            #                     idxj=np.argwhere(iSubMatch==j)
-            #                     idxj=idxj.reshape(-1)
-            #                     this_cMatch=icMatch[idxj]
-            #                     thisSegMatch=iSegMatch[idxj]
-            #                     thisSegMatchRev=iSegMatchRev[idxj]                            
-            #                     thisSegRem=iSegRem[idxj].reshape(-1)
-            #                     this_cRem=icRem[idxj]
-            #                     thisPathRem=iPathRem[idxj] 
-            #                     k=0
-            #                     while k<len(thisSegMatch):
-                               
-            #                         if thisSegMatchRev[k]==False:
-            #                             x1interp=0.5*(sub[thisSegMatch[k]][1][0]+origCoords[this_cRem[k]][thisSegRem[k],0])
-            #                             y1interp=0.5*(sub[thisSegMatch[k]][1][1]+origCoords[this_cRem[k]][thisSegRem[k],1])
-            #                             cx1interp=0.5*(sub[thisSegMatch[k]][2][0]+origCoords[this_cRem[k]][thisSegRem[k],2])
-            #                             cy1interp=0.5*(sub[thisSegMatch[k]][2][1]+origCoords[this_cRem[k]][thisSegRem[k],3])
-            #                             x2interp=0.5*(sub[thisSegMatch[k]+1][1][0]+origCoords[this_cRem[k]][thisSegRem[k],6])
-            #                             y2interp=0.5*(sub[thisSegMatch[k]+1][1][1]+origCoords[this_cRem[k]][thisSegRem[k],7])
-            #                             cx2interp=0.5*(sub[thisSegMatch[k]+1][0][0]+origCoords[this_cRem[k]][thisSegRem[k],4])
-            #                             cy2interp=0.5*(sub[thisSegMatch[k]+1][0][1]+origCoords[this_cRem[k]][thisSegRem[k],5])
-            #                         else:
-            #                             x1interp=0.5*(sub[thisSegMatch[k]][1][0]+origCoords[this_cRem[k]][thisSegRem[k],6])
-            #                             y1interp=0.5*(sub[thisSegMatch[k]][1][1]+origCoords[this_cRem[k]][thisSegRem[k],7])
-            #                             cx1interp=0.5*(sub[thisSegMatch[k]][2][0]+origCoords[this_cRem[k]][thisSegRem[k],4])
-            #                             cy1interp=0.5*(sub[thisSegMatch[k]][2][1]+origCoords[this_cRem[k]][thisSegRem[k],5])
-            #                             x2interp=0.5*(sub[thisSegMatch[k]+1][1][0]+origCoords[this_cRem[k]][thisSegRem[k],0])
-            #                             y2interp=0.5*(sub[thisSegMatch[k]+1][1][1]+origCoords[this_cRem[k]][thisSegRem[k],1])
-            #                             cx2interp=0.5*(sub[thisSegMatch[k]+1][0][0]+origCoords[this_cRem[k]][thisSegRem[k],2])
-            #                             cy2interp=0.5*(sub[thisSegMatch[k]+1][0][1]+origCoords[this_cRem[k]][thisSegRem[k],3])
-                                    
-            #                         sub[thisSegMatch[k]][1]=[x1interp,y1interp]
-            #                         sub[thisSegMatch[k]][2]=[cx1interp,cy1interp]
-            #                         sub[thisSegMatch[k]+1][1]=[x2interp,y2interp]
-            #                         sub[thisSegMatch[k]+1][0]=[cx2interp,cy2interp]
-                                                                      
-            #                         if thisSegMatch[k]==0:
-            #                             sub[thisSegMatch[k]][0]=[x1interp,y1interp]
-            #                         if thisSegMatch[k]+1==len(sub)-1:
-            #                             sub[thisSegMatch[k]+1][2]=[x2interp,y2interp]
-            #                         k+=1
-
-            #                     new.append(sub)
-            #                     j+=1
-                                
-            #                 elem.path = CubicSuperPath(new).to_path(curves_only=True)
-                            
-            #             i+=1
-            
-            # #remove
             i=0
             for id, elem in self.svg.selection.id_dict().items():#each path 
                 if not id in idsNotPath:
                     idx=np.argwhere(removeSegmentPath==i)              
                     if len(idx) > 0:
-                        idx=idx.reshape(1,-1)
-                        idx=idx[0]
-                        new=[]
-                        j=0
-                        for sub in elem.path.to_superpath():#each subpath                       
-                            thisSegRem=removeSegment[idx]
-                            keepLast=False if len(sub)-2 in thisSegRem else True
-                            keepNext2Last=False if len(sub)-3 in thisSegRem else True
-                            thisSubPath=removeSegmentSubPath[idx]
-                            idx2=np.argwhere(removeSegmentSubPath[idx]==j)                      
-                            if len(idx2) > 0:
-                                idx2=idx2.reshape(1,-1)
-                                idx2=idx2[0]
-                                thisSegRem=thisSegRem[idx2]
-                                if len(thisSegRem) < len(sub)-1:#if any segment to be kept
-                                    #find first segment
-                                    k=0
-                                    if 0 in thisSegRem:#remove first segment
-                                        proceed=True
-                                        while proceed:
-                                            if k+1 in thisSegRem:
-                                                k+=1
-                                            else:
-                                                proceed=False
-                                        k+=1    
-                                        new.append([sub[k]])
-                                        if sub[k+1]!=new[-1][-1]:#avoid duplicated nodes
-                                            new[-1].append(sub[k+1])
-                                            new[-1][-1][0]=new[-1][-1][1]                                      
-                                    else:
-                                        new.append([sub[0]])
-                                        if sub[1]!=new[-1][-1]:#avoid duplicated nodes
-                                            new[-1].append(sub[1])
-                                        k+=1
-                                   
-                                    #rest of segments
-                                    while k<len(sub)-1:
-                                        if k in thisSegRem:
-                                            new[-1][-1][-1]=new[-1][-1][1]#stop subpath
-                                            cut=True
-                                            while cut:                                           
-                                                if k+1 in thisSegRem:
-                                                    k+=1
-                                                else:
-                                                    cut=False
-                                            k+=1
-                                            if k<len(sub)-1:
-                                                #start new subpath, start by checking that last sub did contain more than one element
-                                                if len(new[-1])==1: new.pop()
-                                                new.append([sub[k]])#start new subpath
-                                                new[-1][-1][0]=new[-1][-1][1]
-                                                if sub[k+1]!=new[-1][-1]:#avoid duplicated nodes
-                                                    new[-1].append(sub[k+1])
-                                                k+=1
-                                        else:
-                                            if sub[k+1]!=new[-1][-1]:#avoid duplicated nodes
-                                                new[-1].append(sub[k+1])
-                                            k+=1
-                                    if keepLast:
-                                        if sub[-1]!=new[-1][-1]:#avoid duplicated nodes
-                                            new[-1].append(sub[-1])
-
-                                if len(new) > 0:
-                                    if len(new[-1])==1: new.pop()   
-                            else:
-                                new.append(sub)#add as is
-                             
-                            j+=1
-                                                                    
-                        elem.path = CubicSuperPath(new).to_path(curves_only=True)
+                        # s'il a matché ça le supprime du dessin et de la selection
+                        parent = elem.getparent()
+                        parent.remove(elem)
+                        self.svg.selection.pop(elem.get('id'))
                     i+=1
-
+    
     # --------------------------------------------
     def effect(self):
         # % Force la sauvegarde du fichier mais attention  il reste affiché comme si pas sauvé (impossible de faire un enregistre sous)
         current_file_name = self.document_path()
-        # inkex.utils.debug("---------- Nom de fichier actuel : "+current_file_name)
         with open(current_file_name, 'wb') as output_file:
             self.save(output_file)       
         
         # % Sélectionne tout si demandé
         if self.options.ToutSelectionner or (not self.svg.selected) :
-            # Sélectionner tous les éléments
-            for layer in self.svg.getchildren():
-                for element in layer.getchildren():
+            for element in self.svg.descendants():
+                if not isinstance(element, inkex.Group) and not isinstance(element, inkex.TextElement): # pas les groupes pour éviter une redondance
                     self.svg.selection.add(element)
+            
+        # % Découpage en chemins simples
+        for element in self.svg.selection.filter(inkex.PathElement, inkex.Circle, inkex.Ellipse, inkex.Rectangle, inkex.Line, inkex.Polyline, inkex.Polygon):
+            self.replace_with_subpaths(element)
         
-        # # % Découpage en path simples
-        # for element in self.svg.selection.filter(inkex.Group, inkex.PathElement, inkex.Circle, inkex.Ellipse, inkex.Rectangle):
-        #     # groups: iterate through descendants
-        #     if isinstance(element, inkex.Group):
-        #         for shape_element in element.descendants().filter(inkex.PathElement, inkex.Circle, inkex.Ellipse, inkex.Rectangle):
-        #             self.replace_with_subpaths(shape_element)
-        #     else:
-        #         self.replace_with_subpaths(element)                              
-        
-        # # % Conversion en chemin
-        # for element_id in self.svg.selection:
-        #     element = self.svg.selection[element_id]
-        #     if isinstance(element, ShapeElement):
-        #         path = inkex.PathElement()
-        #         path.set('d', str(inkex.paths.CubicSuperPath(element.get_path())))
-        #         element.getparent().replace(element, path)
-        
-        # % Suppression des doublons
+        # # % Suppression des doublons
         self.remove_duplicates()   
+        
+        # for id, element in self.svg.selection.items():
+        #     inkex.utils.debug(f"ID selection 1 Element: {element.get('id')} path : {element.get('d')}")##########
+        
             
         # % Sauvegarde du fichier modifié et ouverture dans une nouvelle occurence d'inkscape si demandé
         if self.options.SauvegarderSousDecoupe:
@@ -593,7 +323,7 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
             with open(new_file_name, 'wb') as output_file:
                 self.save(output_file)
             # ouvre le fichier modifié dans une nouvelle occurence d'inkscape
-            subprocess.Popen(["inkscape", new_file_name])
+            #subprocess.Popen(["inkscape", new_file_name])
 
 
 
