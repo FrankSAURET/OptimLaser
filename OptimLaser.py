@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 # Versions
 #  0.1 Janvier 2023
-#  0.2 mai 2024
+#  0.2 juin 2024
 
 __version__ = "0.2"
 
@@ -51,7 +51,16 @@ from inkex.transforms import Transform
 from inkex import bezier, PathElement, CubicSuperPath, Transform
 import numpy as np
 from tkinter import messagebox
-from inkex.paths import Path
+from inkex.paths import Path, Move
+import math
+import platform
+from datetime import datetime
+import warnings
+from inkex.bezier import cspsubdiv
+
+
+
+
 
 
 class OptimLaser(inkex.Effect,inkex.EffectExtension):
@@ -84,6 +93,15 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
             dest="selfPath",
             default=False)
     
+    def path_to_csp(self, path):
+        # Convertir l'élément en un élément de chemin
+        path_element = Path(path)
+        # Convertir l'élément de chemin en un SuperPath
+        superpath = path_element.to_superpath()
+        # Convertir le SuperPath en un CubicSuperPath
+        cubicsuperpath = cspsubdiv(superpath, 0.1)
+        return cubicsuperpath   
+
     def replace_with_subpaths(self, element):
         # Thank's to Kaalleen on inkscape forum
         # get info about the position in the svg document
@@ -123,17 +141,17 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
             Premier = segmentPrev
             for segment in segments:
                 if segment.letter != 'Z' : # si pas Z crée le chemin
-                    start=segmentPrev.end_point(None, None)
-                    start = inkex.paths.Move(start.x, start.y)
-                    segment_path = inkex.Path([start] + [segment])
+                    debut=segmentPrev.end_point(None, None)
+                    fin=segment.end_point(None, None)
+                    segment_path = inkex.Path([inkex.paths.Move(*debut)] + [segment])
                     segmentPrev = segment
                 else:    # si Z ferme la forme par une ligne droite
-                    debut=(segmentPrev.x, segmentPrev.y)
-                    fin = (Premier.x, Premier.y)
+                    debut=(round(segmentPrev.x, 6), round(segmentPrev.y, 6))
+                    fin = (round(Premier.x, 6), round(Premier.y, 6))
                     if debut != fin:
-                        start = segmentPrev.end_point(None, None)
-                        start = inkex.paths.Move(start.x, start.y)
-                        segment_path = inkex.Path([start] + [inkex.paths.Line(Premier.x, Premier.y)])
+                        if fin[1]<debut[1] :
+                            debut, fin=fin, debut
+                        segment_path = inkex.Path([inkex.paths.Move(*debut), inkex.paths.Line(*fin)])
                 # Crée puis insère le nouveau chemin        
                 new_element = inkex.PathElement(id="chemin"+str(self.numeroChemin),
                                                 d=str(segment_path),
@@ -290,12 +308,45 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                         self.svg.selection.pop(elem.get('id'))
                     i+=1
     
+    def get_first_point(self, d):
+        path = d.split()
+        first_point = float(path[1]), float(path[2])
+        return first_point
+
+    def kill_other_inkscape_running(self):
+        if platform.system() == 'Windows':
+            result = subprocess.run(['wmic', 'process', 'where', "name='inkscape.exe'", 'get', 'CreationDate,ProcessId'], text=True, capture_output=True)
+            lines = result.stdout.strip().split('\n')[1:]  # Ignore the header line
+            #Parse the process IDs and creation dates
+            processes = []
+            for line in lines:
+                if line!="":
+                    parts = line.split()
+                    pid = parts[1]
+                    creation_date_str = re.sub(r'\+\d+$', '', parts[0]) # Supprime le decalage horaire
+                    creation_date = datetime.strptime(creation_date_str, '%Y%m%d%H%M%S.%f')  # Convert the creation date to a datetime object
+                    processes.append((pid, creation_date))
+            # Trier les processus par date de création
+            processes.sort(key=lambda x: x[1])
+            # Si plus d'un processus est en cours d'exécution
+            if len(processes) > 1:
+                # Tuer tous les processus sauf le premier
+                for process in processes[1:]:
+                    subprocess.run(['taskkill', '/PID', process[0]])
+    
     # --------------------------------------------
     def effect(self):
-        # % Force la sauvegarde du fichier mais attention  il reste affiché comme si pas sauvé (impossible de faire un enregistre sous)
-        current_file_name = self.document_path()
-        with open(current_file_name, 'wb') as output_file:
-            self.save(output_file)       
+        # Attention : les messages d'erreur ne seront plus affichés
+            # sys.stdout = open(os.devnull, 'w')
+            # sys.stderr = open(os.devnull, 'w')
+        # % Force la sauvegarde du fichier mais attention  il reste affiché comme si pas sauvé (impossible de faire un enregistrer sous)
+        try:
+            current_file_name = self.document_path()
+            with open(current_file_name, 'wb') as output_file:
+                self.save(output_file)
+        except Exception as e:    
+            messagebox.showwarning('Attention !', 'Vous devez ouvrir un fichier avant de lancer l\'extension.')
+            return
         
         # % Sélectionne tout si demandé
         if self.options.ToutSelectionner or (not self.svg.selected) :
@@ -307,12 +358,69 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
         for element in self.svg.selection.filter(inkex.PathElement, inkex.Circle, inkex.Ellipse, inkex.Rectangle, inkex.Line, inkex.Polyline, inkex.Polygon):
             self.replace_with_subpaths(element)
         
-        # # % Suppression des doublons
+        # % Suppression des doublons
         self.remove_duplicates()   
         
-        # for id, element in self.svg.selection.items():
-        #     inkex.utils.debug(f"ID selection 1 Element: {element.get('id')} path : {element.get('d')}")##########
+        # % Optimisation du parcours
         
+        # # Créez une liste de tous les chemins
+        # paths = [(element.get('d'), element.get('style'), *self.get_first_point(element.get('d'))) for element in self.svg.selection.filter(inkex.PathElement) if element.get('d') is not None]
+        
+        # # Triez les chemins 
+        # paths.sort(key=lambda x: x[3])
+        # # supression des éléments de la sélection et du document
+        # for element in list(self.svg.selection):
+        #     if element.get('d') is not None:
+        #         parent = element.getparent()
+        #         parent.remove(element)
+        #         self.svg.selection.pop(element.get('id'))
+       
+        # NumChemin=0
+        # # Ajoutez les chemins triés à la sélection et au document
+        # for path in paths:  
+        #     new_element = inkex.PathElement(id="chemin"+str(NumChemin),
+        #                                     d=path[0],
+        #                                     style=path[1])
+        #     self.document.getroot().append(new_element)
+        #     self.svg.selection.add(new_element)
+        #     NumChemin+=1
+        
+        # Créez une liste de tous les chemins
+        paths = [(element.get('d'), element.get('style'), *self.get_first_point(element.get('d'))) for element in self.svg.selection.filter(inkex.PathElement) if element.get('d') is not None]
+        # Calculez la distance de chaque point à (0,0)
+        distances = [np.sqrt(path[2]**2 + path[3]**2) for path in paths]
+        # Trouvez l'index du chemin le plus proche de (0,0)
+        start_index = np.argmin(distances)
+        # Choisis ce point comme point de départ et le retire de la liste des chemins
+        start_point = paths[start_index][2:4]
+        ordered_paths = [paths.pop(start_index)]
+        
+        while paths:
+            # Trouvez le chemin le plus proche
+            distances = [np.sqrt((start_point[0] - path[2])**2 + (start_point[1] - path[3])**2) for path in paths]
+            nearest_path_index = np.argmin(distances)
+            nearest_path = paths.pop(nearest_path_index)
+            # Faites du premier point du chemin le plus proche votre nouveau point de départ
+            start_point = nearest_path[2:4]
+            # Ajoutez le chemin le plus proche à la liste des chemins ordonnés
+            ordered_paths.append(nearest_path)
+
+        # supression des éléments de la sélection et du document
+        for element in list(self.svg.selection):
+            if element.get('d') is not None:
+                parent = element.getparent()
+                parent.remove(element)
+                self.svg.selection.pop(element.get('id'))
+        
+        # Ajoutez les chemins triés à la sélection et au document
+        NumChemin=1
+        for path in ordered_paths:  
+            new_element = inkex.PathElement(id="chemin"+str(NumChemin),
+                                            d=path[0],
+                                            style=path[1])
+            self.document.getroot().append(new_element)
+            self.svg.selection.add(new_element)
+            NumChemin+=1
             
         # % Sauvegarde du fichier modifié et ouverture dans une nouvelle occurence d'inkscape si demandé
         if self.options.SauvegarderSousDecoupe:
@@ -322,8 +430,15 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
             new_file_name = base_name + " - decoupe" + extension
             with open(new_file_name, 'wb') as output_file:
                 self.save(output_file)
+            self.document = inkex.load_svg(current_file_name)
             # ouvre le fichier modifié dans une nouvelle occurence d'inkscape
-            #subprocess.Popen(["inkscape", new_file_name])
+            self.kill_other_inkscape_running()
+                #Lance inkscape avec new_file_name en masquant les warning
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                subprocess.Popen(["inkscape", new_file_name])
+
+            
 
 
 
