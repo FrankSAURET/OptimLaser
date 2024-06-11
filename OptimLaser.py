@@ -93,15 +93,6 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
             dest="selfPath",
             default=False)
     
-    def path_to_csp(self, path):
-        # Convertir l'élément en un élément de chemin
-        path_element = Path(path)
-        # Convertir l'élément de chemin en un SuperPath
-        superpath = path_element.to_superpath()
-        # Convertir le SuperPath en un CubicSuperPath
-        cubicsuperpath = cspsubdiv(superpath, 0.1)
-        return cubicsuperpath   
-
     def replace_with_subpaths(self, element):
         # Thank's to Kaalleen on inkscape forum
         # get info about the position in the svg document
@@ -327,9 +318,17 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
         ordered_paths = [paths.pop(start_index)]
 
         while paths:
-            # Trouvez le chemin le plus proche, en considérant à la fois le premier et le dernier point
-            distances = [min(np.sqrt((start_point[0] - path[2])**2 + (start_point[1] - path[3])**2), np.sqrt((start_point[0] - path[4])**2 + (start_point[1] - path[5])**2)) for path in paths]
-            nearest_path_index = np.argmin(distances)
+            # Trouvez le chemin le plus proche
+            distances_to_start = [np.sqrt((start_point[0] - path[2])**2 + (start_point[1] - path[3])**2) for path in paths]
+            distances_to_end = [np.sqrt((start_point[0] - path[4])**2 + (start_point[1] - path[5])**2) for path in paths]
+            nearest_path_index_start = np.argmin(distances_to_start)
+            nearest_path_index_end = np.argmin(distances_to_end)
+            if distances_to_end[nearest_path_index_end] < distances_to_start[nearest_path_index_start]:
+                nearest_path_index = nearest_path_index_end
+                # Inversez le chemin si le point le plus proche est le dernier point du chemin
+                paths[nearest_path_index] = (paths[nearest_path_index][0], paths[nearest_path_index][1], paths[nearest_path_index][4], paths[nearest_path_index][5], paths[nearest_path_index][2], paths[nearest_path_index][3])
+            else:
+                nearest_path_index = nearest_path_index_start
             nearest_path = paths.pop(nearest_path_index)
             # Faites du dernier point du chemin le plus proche votre nouveau point de départ
             start_point = nearest_path[4:6]
@@ -419,10 +418,6 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 subprocess.Popen(["inkscape", new_file_name])
-
-            
-
-
 
 # =================================
 if __name__ == '__main__':
