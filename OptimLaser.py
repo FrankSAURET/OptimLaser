@@ -151,7 +151,7 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                     if debut != fin:
                         if fin[1]<debut[1] :
                             debut, fin=fin, debut
-                        segment_path = inkex.Path([inkex.paths.Move(*debut), inkex.paths.Line(*fin)])
+                        segment_path = inkex.Path([inkex.paths.Move(*fin), inkex.paths.Line(*debut)])
                 # Crée puis insère le nouveau chemin        
                 new_element = inkex.PathElement(id="chemin"+str(self.numeroChemin),
                                                 d=str(segment_path),
@@ -308,11 +308,51 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                         self.svg.selection.pop(elem.get('id'))
                     i+=1
     
-    def get_first_point(self, d):
+    def get_first_and_last_point(self, d):
         path = d.split()
-        first_point = float(path[1]), float(path[2])
-        return first_point
+        return float(path[1]), float(path[2]), float(path[-2]), float(path[-1])
+    
+    def order_paths(self):
+        # Créez une liste de tous les chemins
+        paths = [(element.get('d'), element.get('style'), *self.get_first_and_last_point(element.get('d'))) for element in self.svg.selection.filter(inkex.PathElement) if element.get('d') is not None]
 
+        # Calculez la distance de chaque point de départ à (0,0)
+        distances = [np.sqrt(path[2]**2 + path[3]**2) for path in paths]
+
+        # Trouvez l'index du chemin le plus proche de (0,0)
+        start_index = np.argmin(distances)
+
+        # Choisissez ce point comme point de départ et retirez-le de la liste des chemins
+        start_point = paths[start_index][4:6]
+        ordered_paths = [paths.pop(start_index)]
+
+        while paths:
+            # Trouvez le chemin le plus proche, en considérant à la fois le premier et le dernier point
+            distances = [min(np.sqrt((start_point[0] - path[2])**2 + (start_point[1] - path[3])**2), np.sqrt((start_point[0] - path[4])**2 + (start_point[1] - path[5])**2)) for path in paths]
+            nearest_path_index = np.argmin(distances)
+            nearest_path = paths.pop(nearest_path_index)
+            # Faites du dernier point du chemin le plus proche votre nouveau point de départ
+            start_point = nearest_path[4:6]
+            # Ajoutez le chemin le plus proche à la liste des chemins ordonnés
+            ordered_paths.append(nearest_path)
+
+        # supression des éléments de la sélection et du document
+        for element in list(self.svg.selection):
+            if element.get('d') is not None:
+                parent = element.getparent()
+                parent.remove(element)
+                self.svg.selection.pop(element.get('id'))
+
+        # Ajoutez les chemins triés à la sélection et au document
+        NumChemin=1
+        for path in ordered_paths:  
+            new_element = inkex.PathElement(id="chemin"+str(NumChemin),
+                                            d=path[0],
+                                            style=path[1])
+            self.document.getroot().append(new_element)
+            self.svg.selection.add(new_element)
+            NumChemin+=1
+        
     def kill_other_inkscape_running(self):
         if platform.system() == 'Windows':
             result = subprocess.run(['wmic', 'process', 'where', "name='inkscape.exe'", 'get', 'CreationDate,ProcessId'], text=True, capture_output=True)
@@ -362,66 +402,8 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
         self.remove_duplicates()   
         
         # % Optimisation du parcours
-        
-        # # Créez une liste de tous les chemins
-        # paths = [(element.get('d'), element.get('style'), *self.get_first_point(element.get('d'))) for element in self.svg.selection.filter(inkex.PathElement) if element.get('d') is not None]
-        
-        # # Triez les chemins 
-        # paths.sort(key=lambda x: x[3])
-        # # supression des éléments de la sélection et du document
-        # for element in list(self.svg.selection):
-        #     if element.get('d') is not None:
-        #         parent = element.getparent()
-        #         parent.remove(element)
-        #         self.svg.selection.pop(element.get('id'))
-       
-        # NumChemin=0
-        # # Ajoutez les chemins triés à la sélection et au document
-        # for path in paths:  
-        #     new_element = inkex.PathElement(id="chemin"+str(NumChemin),
-        #                                     d=path[0],
-        #                                     style=path[1])
-        #     self.document.getroot().append(new_element)
-        #     self.svg.selection.add(new_element)
-        #     NumChemin+=1
-        
-        # Créez une liste de tous les chemins
-        paths = [(element.get('d'), element.get('style'), *self.get_first_point(element.get('d'))) for element in self.svg.selection.filter(inkex.PathElement) if element.get('d') is not None]
-        # Calculez la distance de chaque point à (0,0)
-        distances = [np.sqrt(path[2]**2 + path[3]**2) for path in paths]
-        # Trouvez l'index du chemin le plus proche de (0,0)
-        start_index = np.argmin(distances)
-        # Choisis ce point comme point de départ et le retire de la liste des chemins
-        start_point = paths[start_index][2:4]
-        ordered_paths = [paths.pop(start_index)]
-        
-        while paths:
-            # Trouvez le chemin le plus proche
-            distances = [np.sqrt((start_point[0] - path[2])**2 + (start_point[1] - path[3])**2) for path in paths]
-            nearest_path_index = np.argmin(distances)
-            nearest_path = paths.pop(nearest_path_index)
-            # Faites du premier point du chemin le plus proche votre nouveau point de départ
-            start_point = nearest_path[2:4]
-            # Ajoutez le chemin le plus proche à la liste des chemins ordonnés
-            ordered_paths.append(nearest_path)
-
-        # supression des éléments de la sélection et du document
-        for element in list(self.svg.selection):
-            if element.get('d') is not None:
-                parent = element.getparent()
-                parent.remove(element)
-                self.svg.selection.pop(element.get('id'))
-        
-        # Ajoutez les chemins triés à la sélection et au document
-        NumChemin=1
-        for path in ordered_paths:  
-            new_element = inkex.PathElement(id="chemin"+str(NumChemin),
-                                            d=path[0],
-                                            style=path[1])
-            self.document.getroot().append(new_element)
-            self.svg.selection.add(new_element)
-            NumChemin+=1
-            
+        self.order_paths()
+                    
         # % Sauvegarde du fichier modifié et ouverture dans une nouvelle occurence d'inkscape si demandé
         if self.options.SauvegarderSousDecoupe:
             # Sauvegarde du fichier modifié 
@@ -433,7 +415,7 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
             self.document = inkex.load_svg(current_file_name)
             # ouvre le fichier modifié dans une nouvelle occurence d'inkscape
             self.kill_other_inkscape_running()
-                #Lance inkscape avec new_file_name en masquant les warning
+                #Lance inkscape avec new_file_name en masquant les warnings
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 subprocess.Popen(["inkscape", new_file_name])
