@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 # Versions
 #  0.1 Janvier 2023
-#  0.2 juin 2024
+#  2024-06-19.1 juin 2024
 
 __version__ = "0.2"
 
