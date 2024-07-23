@@ -5,6 +5,7 @@ For inkscape V 1.x
 -----
 This script optimizes a drawing for laser cutting:
 
+- Removes overlapping lines;
 - Saves the modified file with a new name;
 - Applies modifications to the entire document or to the selection;
 - Optimizes the cutting order.
