@@ -33,8 +33,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 # Versions
 #  0.1 Janvier 2023
 #  0.2 juin 2024
+#  0.2.1 juillet 2024
 
-__version__ = "0.2"
+__version__ = "0.2.1"
 
 import os
 import subprocess
