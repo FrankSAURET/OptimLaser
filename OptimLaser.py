@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 # Versions
 #  0.1 Janvier 2023
-#  2024-06-19.1 juin 2024
+#  0.2 juin 2024
 
 __version__ = "0.2"
 
@@ -154,11 +154,14 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                                 segment_path = inkex.Path([inkex.paths.Move(*debut)] + [inkex.paths.Line(*fin)])
                         segmentPrev = segment
                     else:    # si Z ferme la forme par une ligne droite
-                        debut=(round(segmentPrev.x, 6), round(segmentPrev.y, 6))
+                        inkex.utils.debug(f"segmentPrev : {segmentPrev}")##########
+                        if segmentPrev.letter!='C':
+                            debut=(round(segmentPrev.x, 6), round(segmentPrev.y, 6))
+                        else:
+                            debut=(round(segmentPrev.x4, 6), round(segmentPrev.y4, 6))    
                         fin = (round(Premier.x, 6), round(Premier.y, 6))
                         segment_path = inkex.Path([inkex.paths.Move(*debut)] + [inkex.paths.Line(*fin)])
-                        pass
-                        pass
+
                     # Crée puis insère le nouveau chemin
                     new_element = inkex.PathElement(id="chemin"+str(self.numeroChemin),
                                                     d=str(segment_path),
@@ -545,20 +548,20 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
         # % Découpage en chemins simples
         self.replace_with_subpaths()
 
-        # % Ajoute des points en cas de colinéarité
-        self.add_points_to_overlapping_paths()
+        # # % Ajoute des points en cas de colinéarité
+        # self.add_points_to_overlapping_paths()
 
-        # % Suppression des doublons
-        self.remove_duplicates()
+        # # % Suppression des doublons
+        # self.remove_duplicates()
             
-        # % Optimisation du parcours
-        self.order_paths()
+        # # % Optimisation du parcours
+        # self.order_paths()
         
-        # % Remets les éléments gris
-        for element in list(self.ListeDeGris):
-            style = element.style
-            style['stroke']=None
-            self.document.getroot().append(element)
+        # # % Remets les éléments gris
+        # for element in list(self.ListeDeGris):
+        #     style = element.style
+        #     style['stroke']=None
+        #     self.document.getroot().append(element)
          
         # % Sauvegarde du fichier modifié et ouverture dans une nouvelle occurence d'inkscape si demandé
         if self.options.SauvegarderSousDecoupe:
@@ -578,10 +581,4 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
 
 # =================================
 if __name__ == '__main__':
-    if '\\' in __file__:
-        # We are running in PyCharm
-        input_file = r'H:\\Seafile\\Ma bibliothèque\\2 - Perso maison\\Essais suppression double.svg'
-        output_file = input_file
-        OptimLaser().run([input_file, '--output=' + output_file])
-    else:
-        OptimLaser().run()
+    OptimLaser().run()
