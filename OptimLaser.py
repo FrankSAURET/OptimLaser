@@ -33,9 +33,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 # Versions
 #  0.1 Janvier 2023
 #  0.2 juin 2024
-#  0.2.1 juillet 2024
+#  0.2.2 octobre 2024
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 import os
 import subprocess
@@ -52,6 +52,7 @@ import platform
 from datetime import datetime
 import warnings
 import copy
+from lxml import etree
 
 
 class OptimLaser(inkex.Effect,inkex.EffectExtension):
@@ -103,6 +104,48 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
         cross_product2 = vector_se[0] * vector_sc2[1] - vector_se[1] * vector_sc2[0]
         return abs(cross_product1) < 0.01 and abs(cross_product2) < 0.01
 
+    def find_layer(self, element):
+        """Retourne le calque parent d'un élément
+        """
+        while element is not None:
+            if isinstance(element, etree._Element):
+                if element.tag == inkex.addNS('g', 'svg') and element.get(inkex.addNS('groupmode', 'inkscape')) == 'layer':
+                    # return element.get(inkex.addNS('label', 'inkscape')) // pour son nom
+                    return element
+            element = element.getparent()
+        return None
+    
+    def ungroup_and_apply_transform_to_children(self):
+        """Applique la transformation d'un groupe à chacun de ses éléments enfants en conservant les transformations eventuelles."""
+        listChild=[]
+        for element in self.svg.selection.filter(inkex.Group):
+            if 'layer' not in element.get('id', ''):
+                parent = element.getparent()
+                transform = element.transform
+                for child in element.getchildren():
+                    id_child = child.get('id')
+                    if not isinstance(child, inkex.PathElement):
+                        child = child.to_path_element()
+                        child.set('id', id_child)
+                    path = child.path
+                    path = path.transform(transform)
+                    child.path = path
+                    child.attrib.pop('transform', None) 
+                    parent.append(child)
+                    self.svg.selection.pop(child.get('id'))
+                    listChild.append(child)
+                self.svg.selection.pop(element.get('id'))
+                parent.remove(element)    
+        #Ici il y a un bug dans la fonction svg.selection.add qui fait que quelques fois le compteur ne s'incrémente pas et donc ça écrit l'élément suivant sur le précédent                
+        liste_selectionP = []
+        for element in self.svg.selection.values():
+            liste_selectionP.append(element)
+        liste_selectionP.extend(listChild)  
+        self.svg.selection.clear()
+        # Ajouter les éléments de liste_selection dans svg.selection
+        for elem in liste_selectionP:
+            self.svg.selection[elem.get('id')] = elem                                        
+
     def replace_with_subpaths(self):
         """Découpe tous les chemin en petits chemins composés uniquement d'un commande Move et d'une commande de tracé (absolu)
 
@@ -116,18 +159,20 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
         # L x y : Line TO : dessine une ligne droite vers un point donné de coordonnées(x,y)
         self.numeroChemin = len(self.svg.selection)
         listElem=[]
+        
         for element in self.svg.selection.filter(inkex.PathElement, inkex.Circle, inkex.Ellipse, inkex.Rectangle, inkex.Line, inkex.Polyline, inkex.Polygon):
             parent = element.getparent()
-            index = parent.index(element)
-
+            couche = self.find_layer(element)
             # Supprimer le remplissage, les nouveaux éléments sont des traits.
-            # Le gris étant a priori destiné à la gravure, les éléments dont le remplissage est gris seront remis après les modifications.
+            # Le gris étant a priori destiné à la gravure, les éléments dont le remplissage est gris ou noir seront remis après les modifications.
             style = element.style
-            fill_color = inkex.Color(style('fill', None))
-            r, v, b = fill_color.to_rgb()
-            if (r == v and r == b and v == b) :
-                self.ListeDeGris.append(copy.deepcopy(element))
-            style['fill'] = 'none'
+            fill_value = style.get('fill', None)
+            if fill_value and fill_value.lower() != 'none':
+                fill_color = inkex.Color(style('fill', None))
+                r, v, b = fill_color.to_rgb()
+                if (r == v and r == b and v == b) :
+                    self.ListeDeGris.append(copy.deepcopy(element))
+                style['fill'] = 'none'
             
             # Supprime les translates
             if isinstance(element, inkex.PathElement) and 'transform' in element.attrib:
@@ -144,7 +189,6 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                 segmentPrev = next(segments)
                 Premier = segmentPrev
                 for segment in segments:
-                    self.numeroChemin += 1
                     if segment.letter != 'Z' : # si pas Z crée le chemin
                         debut=segmentPrev.end_point(None, None)
                         fin=segment.end_point(None, None)
@@ -155,22 +199,27 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                                 segment_path = inkex.Path([inkex.paths.Move(*debut)] + [inkex.paths.Line(*fin)])
                         segmentPrev = segment
                     else:    # si Z ferme la forme par une ligne droite
-                        inkex.utils.debug(f"segmentPrev : {segmentPrev}")##########
                         if segmentPrev.letter!='C':
                             debut=(round(segmentPrev.x, 6), round(segmentPrev.y, 6))
                         else:
                             debut=(round(segmentPrev.x4, 6), round(segmentPrev.y4, 6))    
                         fin = (round(Premier.x, 6), round(Premier.y, 6))
                         segment_path = inkex.Path([inkex.paths.Move(*debut)] + [inkex.paths.Line(*fin)])
-
-                    # Crée puis insère le nouveau chemin
-                    new_element = inkex.PathElement(id="chemin"+str(self.numeroChemin),
-                                                    d=str(segment_path),
-                                                    style=str(style),
-                                                    transform=str(element.transform))
-                    self.document.getroot().append(new_element)
-                    # self.svg.selection.add(new_element) // Voir ci dessous
-                    listElem.append(new_element)
+                    if debut!=fin:
+                        self.numeroChemin += 1
+                        # Crée puis insère le nouveau chemin
+                        new_element = inkex.PathElement(id="chemin"+str(self.numeroChemin),
+                                                        d=str(segment_path),
+                                                        style=str(style),
+                                                        transform=str(element.transform))
+                        # Ajouter le nouvel élément à la couche parente
+                        if couche is not None:
+                            couche.append(new_element)
+                        else:
+                            # Si aucune couche n'est trouvée, ajouter à la racine du document
+                            self.document.getroot().append(new_element)
+                        # self.svg.selection.add(new_element) // Voir ci dessous
+                        listElem.append(new_element)
                 # supprime l'elément original du document
                 parent.remove(element)
                 # supprime l'elément original de la sélection
@@ -185,7 +234,6 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
         # Ajouter les éléments de liste_selection dans svg.selection
         for elem in liste_selection:
             self.svg.selection[elem.get('id')] = elem
-        pass
 
     def remove_duplicates(self):
         """ supprime les lignes qui passe les unes sur les autres
@@ -343,35 +391,50 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
     def order_paths(self):
         """Trie les chemins pour optimiser le déplacement de la tête de découpe laser
         """
-        # Créez une liste de tous les chemins
-        paths = [(element.get('d'), element.get('style'), *self.get_first_and_last_point(element.get('d'))) for element in self.svg.selection.filter(inkex.PathElement) if element.get('d') is not None]
-
-        # Calculez la distance de chaque point de départ à (0,0)
+        # Créer une liste de tous les chemins
+        paths = [
+            (
+                element.get('d'), 
+                element.get('style'), 
+                *self.get_first_and_last_point(element.get('d')), 
+                self.find_layer(element)
+            ) 
+            for element in self.svg.selection.filter(inkex.PathElement) 
+            if element.get('d') is not None]
+            # element.get('d'),          # path[0]
+            # element.get('style'),      # path[1]
+            # first_point_x,             # path[2]
+            # first_point_y,             # path[3]
+            # last_point_x,              # path[4]
+            # last_point_y,              # path[5]
+            # self.find_layer(element)   # path[6]
+ 
+        # Calculer la distance de chaque point de départ à (0,0)
         distances = [np.sqrt(path[2]**2 + path[3]**2) for path in paths]
 
-        # Trouvez l'index du chemin le plus proche de (0,0)
+        # Trouver l'index du chemin le plus proche de (0,0)
         start_index = np.argmin(distances)
 
-        # Choisissez ce point comme point de départ et retirez-le de la liste des chemins
+        # Choisir ce point comme point de départ et le retirer de la liste des chemins
         start_point = paths[start_index][4:6]
         ordered_paths = [paths.pop(start_index)]
 
         while paths:
-            # Trouvez le chemin le plus proche
+            # Trouver le chemin le plus proche
             distances_to_start = [np.sqrt((start_point[0] - path[2])**2 + (start_point[1] - path[3])**2) for path in paths]
             distances_to_end = [np.sqrt((start_point[0] - path[4])**2 + (start_point[1] - path[5])**2) for path in paths]
             nearest_path_index_start = np.argmin(distances_to_start)
             nearest_path_index_end = np.argmin(distances_to_end)
             if distances_to_end[nearest_path_index_end] < distances_to_start[nearest_path_index_start]:
                 nearest_path_index = nearest_path_index_end
-                # Inversez le chemin si le point le plus proche est le dernier point du chemin
-                paths[nearest_path_index] = (paths[nearest_path_index][0], paths[nearest_path_index][1], paths[nearest_path_index][4], paths[nearest_path_index][5], paths[nearest_path_index][2], paths[nearest_path_index][3])
+                # Inverser le chemin si le point le plus proche est le dernier point du chemin
+                paths[nearest_path_index] = (paths[nearest_path_index][0], paths[nearest_path_index][1], paths[nearest_path_index][4], paths[nearest_path_index][5], paths[nearest_path_index][2], paths[nearest_path_index][3],paths[nearest_path_index][6])
             else:
                 nearest_path_index = nearest_path_index_start
             nearest_path = paths.pop(nearest_path_index)
-            # Faites du dernier point du chemin le plus proche votre nouveau point de départ
+            # Faire du dernier point du chemin le plus proche votre nouveau point de départ
             start_point = nearest_path[4:6]
-            # Ajoutez le chemin le plus proche à la liste des chemins ordonnés
+            # Ajouter le chemin le plus proche à la liste des chemins ordonnés
             ordered_paths.append(nearest_path)
 
         # supression des éléments de la sélection et du document
@@ -381,13 +444,18 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                 parent.remove(element)
                 self.svg.selection.pop(element.get('id'))
 
-        # Ajoutez les chemins triés à la sélection et au document
+        # Ajouter les chemins triés à la sélection et au document
         NumChemin=1
         for path in ordered_paths:
             new_element = inkex.PathElement(id="chemin"+str(NumChemin),
                                             d=path[0],
                                             style=path[1])
-            self.document.getroot().append(new_element)
+            # Ajouter le nouvel élément à la couche parente
+            if path[6] is not None:
+                path[6].append(new_element)
+            else:
+                # Si aucune couche n'est trouvée, ajouter à la racine du document
+                self.document.getroot().append(new_element)
             self.svg.selection.add(new_element)
             NumChemin+=1
 
@@ -494,6 +562,7 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                     self.document.getroot().append(new_element2)
                     self.svg.selection.add(new_element2)     
         pass
+    
     def is_point_on_path_segment(self,point, path_segment, a):
         """Vérifie si point se trouve sur path_segment
 
@@ -525,7 +594,7 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                 if min(path_segment[0][1], path_segment[1][1]) <= point[1] <= max(path_segment[0][1], path_segment[1][1]):
                     return True
         return False
-
+    
     # --------------------------------------------
     def effect(self):
         # Attention : les messages d'erreur ne seront plus affichés
@@ -537,33 +606,43 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
             with open(current_file_name, 'wb') as output_file:
                 self.save(output_file)
         except Exception as e:
-            messagebox.showwarning('Attention !', 'Vous devez ouvrir un fichier avant de lancer l\'extension.')
+            messagebox.showwarning('Attention !', 'Vous devez enregistrer le fichier puis relancer l\'extension.')
             return
 
         # % Sélectionne tout si demandé
         if self.options.ToutSelectionner or (not self.svg.selected) :
             for element in self.svg.descendants():
-                if not isinstance(element, inkex.Group) and not isinstance(element, inkex.TextElement): # pas les groupes pour éviter une redondance
+                # if not isinstance(element, inkex.Group) and not isinstance(element, inkex.TextElement): # pas les groupes pour éviter une redondance
+                if not isinstance(element, inkex.TextElement):     
                     self.svg.selection.add(element)
-
+        
+        # % Applique la transformation d'un groupe à chacun de ses éléments enfants.
+        self.ungroup_and_apply_transform_to_children()
+       
         # % Découpage en chemins simples
         self.replace_with_subpaths()
 
-        # # % Ajoute des points en cas de colinéarité
-        # self.add_points_to_overlapping_paths()
+        # % Ajoute des points en cas de colinéarité
+        self.add_points_to_overlapping_paths()
 
-        # # % Suppression des doublons
-        # self.remove_duplicates()
+        # % Suppression des doublons
+        self.remove_duplicates()
             
-        # # % Optimisation du parcours
-        # self.order_paths()
+        # % Optimisation du parcours
+        self.order_paths()
         
-        # # % Remets les éléments gris
-        # for element in list(self.ListeDeGris):
-        #     style = element.style
-        #     style['stroke']=None
-        #     self.document.getroot().append(element)
-         
+        # % Remets les éléments gris
+        for element in list(self.ListeDeGris):
+            couche = self.find_layer(element)
+            style = element.style
+            style['stroke']=None
+            # Ajouter le nouvel élément à la couche parente
+            if couche is not None:
+                couche.append(element)
+            else:
+                # Si aucune couche n'est trouvée, ajouter à la racine du document
+                self.document.getroot().append(element)
+                
         # % Sauvegarde du fichier modifié et ouverture dans une nouvelle occurence d'inkscape si demandé
         if self.options.SauvegarderSousDecoupe:
             # Sauvegarde du fichier modifié
@@ -575,11 +654,20 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
             self.document = inkex.load_svg(current_file_name)
             # ouvre le fichier modifié dans une nouvelle occurence d'inkscape
             self.kill_other_inkscape_running()
-                #Lance inkscape avec new_file_name en masquant les warnings
+            #Lance inkscape avec new_file_name en masquant les warnings
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 subprocess.Popen(["inkscape", new_file_name])
 
-# =================================
+# ======================================================================
 if __name__ == '__main__':
     OptimLaser().run()
+# Pour débugger dans VSCode et en lançant InkScape    
+# if __name__ == '__main__':
+#     if '\\' in __file__:
+#         # Dans VSCode
+#         input_file = r'H:\\OneDrive\\Essai supp double dupliqué.svg'
+#         output_file = input_file
+#         OptimLaser().run([input_file, '--output=' + output_file])
+#     else:
+#         OptimLaser().run()
