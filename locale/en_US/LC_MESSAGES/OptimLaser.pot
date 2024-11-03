@@ -1,0 +1,86 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-11-01 19:30+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: OptimLaser.inx:3
+msgid "Optimisation pour découpe laser"
+msgstr "Optimization for laser cutting"
+
+#: OptimLaser.inx:8
+msgid "Options"
+msgstr "Options"
+
+#: OptimLaser.inx:10
+msgid "Sauvegarder le fichier original et travailler sur un nouveau fichier avec « - Decoupe » au bout de son nom. Ce fichier sera ouvert à la fin. Vous devriez fermer les autres inkscape pour utiliser cette option."
+msgstr "Save the original file and work on a new file with \"- Cut\" at the end of its name. This file will be opened at the end. You should close other instances of Inkscape to use this option."
+
+#: OptimLaser.inx:11
+msgid "Applique les modifications à tout le document. Si non coché ne les applique qu'à la sélection."
+msgstr "Apply changes to the entire document. If unchecked, apply them only to the selection."
+
+#: OptimLaser.inx:13
+msgid "L'unité utilisé est celle définie pour le document (Fichier > Propriétés du document > Affichage)."
+msgstr "The unit used is the one defined for the document (File > Document Properties > Display)."
+
+#: OptimLaser.inx:14
+msgid "Les formes remplies de gris seront conservées ; les autres remplissages seront supprimés."
+msgstr "Shapes filled with gray will be kept; other fills will be removed."
+
+#: OptimLaser.inx:16
+msgid "Tolérance : "
+msgstr "Tolerance:"
+
+#: OptimLaser.inx:18
+msgid "Inclure la vérification de chaque chemin par rapport à lui-même. Attention : les segments plus petits que la tolérance définie ci-dessus pourraient disparaître."
+msgstr "Include checking each path against itself. Warning: segments smaller than the tolerance defined above may disappear."
+
+#: OptimLaser.inx:20
+msgid "Selon votre machine, l'ouverture d'une nouvelle occurence d'InkScape peut-être longue. Patientez ..."
+msgstr "Depending on your machine, opening a new instance of Inkscape may take a long time. Please wait..."
+
+#: OptimLaser.inx:23
+msgid "Information"
+msgstr "Information"
+
+#: OptimLaser.inx:24
+msgid "Ce script permet d'optimiser un dessin pour la découpe laser."
+msgstr "This script optimizes a drawing for laser cutting."
+
+#: OptimLaser.inx:25
+msgid "	- Suppression des éléments superposés ;\n	- Sauvegarde du fichier modifié avec un nouveau nom ;\n	- Application des modifications à tout le document ou à la sélection ;\n	- Optimisation de l'ordre de découpe."
+msgstr "	- Removal of overlapping elements;\n	- Save the modified file with a new name;\n	- Apply changes to the entire document or to the selection;\n	- Optimize the cutting order."
+
+#: OptimLaser.inx:28
+msgid "Pour plus d'informations : "
+msgstr "For more information:"
+
+#: OptimLaser.inx:29
+msgid "La fonction remove duplicate utilise maintenant le travail de Ellen Wasbø qui permet une tolérance sur les éléments superposés :"
+msgstr "The remove duplicate function now uses the work of Ellen Wasbø, which allows for tolerance on overlapping elements:"
+
+#: OptimLaser.inx:30
+msgid "https://github.com/FrankSAURET/OptimLaser"
+msgstr "https://github.com/FrankSAURET/OptimLaser"
+
+#: OptimLaser.inx:32
+msgid "https://gitlab.com/EllenWasbo/inkscape-extension-removeduplicatelines"
+msgstr "https://gitlab.com/EllenWasbo/inkscape-extension-removeduplicatelines"
+
+#: OptimLaser.inx:37
+msgid "Découpe Laser"
+msgstr "Laser Cut"
