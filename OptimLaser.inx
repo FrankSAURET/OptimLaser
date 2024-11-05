@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+<inkscape-extension translationdomain="OptimLaser" xmlns="http://www.inkscape.org/namespace/inkscape/extension">
 	<name>Optimisation pour découpe laser</name>
 	<id>franksauret.OptimLaser</id>
 	<dependency type="executable" location="extensions">OptimLaser.py</dependency>
