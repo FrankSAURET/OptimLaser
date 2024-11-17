@@ -17,17 +17,21 @@
 			</hbox>
 			<param name="selfPath" type="boolean" gui-text="Inclure la vérification de chaque chemin par rapport à lui-même. Attention : les segments plus petits que la tolérance définie ci-dessus pourraient disparaître.">true</param>
 			<label appearance="header" xml:space="preserve">
-			
-			
+
+
 Selon votre machine, l'ouverture d'une nouvelle occurence d'InkScape peut-être longue. Patientez ...</label>
 		</page>
 		<page name="info" gui-text="Information">
 			<label appearance="header">Ce script permet d'optimiser un dessin pour la découpe laser.</label>
-			<param name="infotext" type="description" xml:space="preserve">	- Suppression des éléments superposés ;
-	- Sauvegarde du fichier modifié avec un nouveau nom ;
-	- Application des modifications à tout le document ou à la sélection ;
-	- Optimisation de l'ordre de découpe.
-			</param>
+			<hbox>
+			<spacer/>
+				<vbox>
+					<param name="infotext" type="description" xml:space="preserve">- Suppression des éléments superposés ;
+- Sauvegarde du fichier modifié avec un nouveau nom ;
+- Application des modifications à tout le document ou à la sélection ;
+- Optimisation de l'ordre de découpe.</param>
+				</vbox>
+			</hbox>
 			<separator />
 			<param name="infotext" type="description" xml:space="preserve">Pour plus d'informations : </param>
 			<label appearance="url">https://github.com/FrankSAURET/OptimLaser</label>

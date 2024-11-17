@@ -6,13 +6,13 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: Traduction \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-11-01 19:30+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2024-11-13 14:18+0100\n"
+"Last-Translator: Frank SAURET <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -50,8 +50,8 @@ msgid "Inclure la vérification de chaque chemin par rapport à lui-même. Atten
 msgstr "Include checking each path against itself. Warning: segments smaller than the tolerance defined above may disappear."
 
 #: OptimLaser.inx:20
-msgid "Selon votre machine, l'ouverture d'une nouvelle occurence d'InkScape peut-être longue. Patientez ..."
-msgstr "Depending on your machine, opening a new instance of Inkscape may take a long time. Please wait..."
+msgid "\n\n\nSelon votre machine, l'ouverture d'une nouvelle occurence d'InkScape peut-être longue. Patientez ..."
+msgstr "\n\n\nDepending on your machine, opening a new instance of Inkscape may take a long time. Please wait..."
 
 #: OptimLaser.inx:23
 msgid "Information"
@@ -62,8 +62,8 @@ msgid "Ce script permet d'optimiser un dessin pour la découpe laser."
 msgstr "This script optimizes a drawing for laser cutting."
 
 #: OptimLaser.inx:25
-msgid "	- Suppression des éléments superposés ;\n	- Sauvegarde du fichier modifié avec un nouveau nom ;\n	- Application des modifications à tout le document ou à la sélection ;\n	- Optimisation de l'ordre de découpe."
-msgstr "	- Removal of overlapping elements;\n	- Save the modified file with a new name;\n	- Apply changes to the entire document or to the selection;\n	- Optimize the cutting order."
+msgid "- Suppression des éléments superposés ;\n- Sauvegarde du fichier modifié avec un nouveau nom ;\n- Application des modifications à tout le document ou à la sélection ;\n- Optimisation de l'ordre de découpe."
+msgstr "- Removal of overlapping elements;\n- Save the modified file with a new name;\n- Apply changes to the entire document or to the selection;\n- Optimize the cutting order."
 
 #: OptimLaser.inx:28
 msgid "Pour plus d'informations : "
