@@ -35,8 +35,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #  0.2 juin 2024
 #  0.2.2 octobre 2024
 # 2024.1 novembre 2024 juste le versionnage
+# 2025.1 23 Février 2025 Correction d'un bug
 
-__version__ = "2024.2"
+__version__ = "2025.1"
 
 import os
 import subprocess
@@ -133,9 +134,11 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                     child.path = path
                     child.attrib.pop('transform', None) 
                     parent.append(child)
-                    self.svg.selection.pop(child.get('id'))
+                    if child.get('id') in self.svg.selection:
+                        self.svg.selection.pop(child.get('id'))
                     listChild.append(child)
-                self.svg.selection.pop(element.get('id'))
+                if element.get('id') in self.svg.selection:
+                    self.svg.selection.pop(element.get('id'))
                 parent.remove(element)    
         #Ici il y a un bug dans la fonction svg.selection.add qui fait que quelques fois le compteur ne s'incrémente pas et donc ça écrit l'élément suivant sur le précédent                
         liste_selectionP = []
@@ -401,7 +404,7 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
                 self.find_layer(element)
             ) 
             for element in self.svg.selection.filter(inkex.PathElement) 
-            if element.get('d') is not None]
+            if element.get('d') is not None and len(element.get('d').split()) >= 4]
             # element.get('d'),          # path[0]
             # element.get('style'),      # path[1]
             # first_point_x,             # path[2]
@@ -663,11 +666,11 @@ class OptimLaser(inkex.Effect,inkex.EffectExtension):
 # ======================================================================
 if __name__ == '__main__':
     OptimLaser().run()
-# Pour débugger dans VSCode et en lançant InkScape    
+# # Pour débugger dans VSCode et en lançant InkScape    
+# input_file = r'H:\\OneDrive\\TestOptimLaser2.svg'
 # if __name__ == '__main__':
-#     if '\\' in __file__:
+#     if '\\' in __file__ and os.path.exists(input_file):
 #         # Dans VSCode
-#         input_file = r'H:\\OneDrive\\Essai supp double dupliqué.svg'
 #         output_file = input_file
 #         OptimLaser().run([input_file, '--output=' + output_file])
 #     else:
