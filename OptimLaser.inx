@@ -7,17 +7,18 @@
 	<param name="tab" type="notebook">
 		<page name="options" gui-text="Options">
 			<param name="Sauvegarde" type="boolean" gui-text="Sauvegarder le fichier original et travailler sur un nouveau fichier avec « - Decoupe » au bout de son nom. Ce fichier sera ouvert à la fin. Vous devriez fermer les autres inkscape pour utiliser cette option.">true</param>
-			<param name="ToutSelectionner" type="boolean" gui-text="Applique les modifications à tout le document. Si non coché ne les applique qu'à la sélection.">true</param>
+			<label >Les modifications seront appliquée à tout le document.</label>
 			<separator />
-			<param name="unitinfo" type="description">L'unité utilisé est celle définie pour le document (Fichier > Propriétés du document > Affichage).</param>
 			<param name="grayinfo" type="description">Les formes remplies de gris seront conservées ; les autres remplissages seront supprimés.</param>
+			<separator />
 			<hbox>
 				<param name="tolerance" type="float" precision="3" min="0.001" max="1.000" gui-text="Tolérance : ">0.100</param>
+				<label >  Mettre au moins la largeur du trait de coupe. L'unité utilisé est celle définie pour le document (Fichier > Propriétés du document > Affichage).</label>
 				<spacer size="expand"/>
 			</hbox>
-			<param name="selfPath" type="boolean" gui-text="Inclure la vérification de chaque chemin par rapport à lui-même. Attention : les segments plus petits que la tolérance définie ci-dessus pourraient disparaître.">true</param>
+			<param name="SupprimerCouleursNonGerees" type="boolean" gui-text="Supprimer les chemins de couleurs non gérés par la découpeuse laser (couleurs absentes de OptimLaser.ini)">true</param>
+			<label >L'ordre des couleurs pour la découpe est défini dans le fichier OptimLaser.ini</label>
 			<label appearance="header" xml:space="preserve">
-
 
 Selon votre machine, l'ouverture d'une nouvelle occurence d'InkScape peut-être longue. Patientez ...</label>
 		</page>
@@ -35,8 +36,6 @@ Selon votre machine, l'ouverture d'une nouvelle occurence d'InkScape peut-être 
 			<separator />
 			<param name="infotext" type="description" xml:space="preserve">Pour plus d'informations : </param>
 			<label appearance="url">https://github.com/FrankSAURET/OptimLaser</label>
-			<param name="infotext2" type="description" xml:space="preserve">La fonction remove duplicate utilise maintenant le travail de Ellen Wasbø qui permet une tolérance sur les éléments superposés :</param>
-			<label appearance="url">https://gitlab.com/EllenWasbo/inkscape-extension-removeduplicatelines</label>
 		</page>
 	</param>
 
