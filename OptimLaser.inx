@@ -7,34 +7,37 @@
 	<param name="tab" type="notebook">
 		<page name="options" gui-text="Options">
 			<param name="Sauvegarde" type="boolean" gui-text="Sauvegarder le fichier original et travailler sur un nouveau fichier avec « - Decoupe » au bout de son nom. Ce fichier sera ouvert à la fin. Vous devriez fermer les autres inkscape pour utiliser cette option.">true</param>
-			<label >Les modifications seront appliquée à tout le document.</label>
+			<label >Les modifications seront appliquées à tout le document.</label>
 			<separator />
 			<param name="grayinfo" type="description">Les formes remplies de gris seront conservées ; les autres remplissages seront supprimés.</param>
 			<separator />
 			<hbox>
 				<param name="tolerance" type="float" precision="3" min="0.001" max="1.000" gui-text="Tolérance : ">0.100</param>
-				<label >  Mettre au moins la largeur du trait de coupe. L'unité utilisé est celle définie pour le document (Fichier > Propriétés du document > Affichage).</label>
+				<label >Mettre au moins la largeur du trait de coupe. L'unité utilisée est celle définie pour le document (Fichier > Propriétés du document > Affichage).</label>
 				<spacer size="expand"/>
 			</hbox>
 			<param name="SupprimerCouleursNonGerees" type="boolean" gui-text="Supprimer les chemins de couleurs non gérés par la découpeuse laser (couleurs absentes de OptimLaser.ini)">true</param>
-			<label >L'ordre des couleurs pour la découpe est défini dans le fichier OptimLaser.ini</label>
+			<label >L'ordre des couleurs pour la découpe est défini dans le fichier OptimLaser.ini (son emplacement est défini dans Edition > Préférences > Système > Extensions utilisateur).</label>
 			<label appearance="header" xml:space="preserve">
 
-Selon votre machine, l'ouverture d'une nouvelle occurence d'InkScape peut-être longue. Patientez ...</label>
+Selon votre machine, l'ouverture d'une nouvelle occurrence d'InkScape peut être longue. Patientez ...</label>
 		</page>
 		<page name="info" gui-text="Information">
-			<label appearance="header">Ce script permet d'optimiser un dessin pour la découpe laser.</label>
+			<label appearance="header">Ce script permet d’optimiser un dessin pour la découpe laser.</label>
 			<hbox>
 			<spacer/>
 				<vbox>
-					<param name="infotext" type="description" xml:space="preserve">- Suppression des éléments superposés ;
-- Sauvegarde du fichier modifié avec un nouveau nom ;
-- Application des modifications à tout le document ou à la sélection ;
-- Optimisation de l'ordre de découpe.</param>
+					<param name="infotext" type="description" xml:space="preserve">– Suppression des traits superposés (sauf les courbes de Béziers) ;
+– Sauvegarde avant et après dans 2 fichiers séparés ;
+– Optimisation de l’ordre de découpe ;
+– Suppression (possible) des traits non découpables (de couleurs non gérés par la découpeuse laser).</param>
 				</vbox>
 			</hbox>
 			<separator />
-			<param name="infotext" type="description" xml:space="preserve">Pour plus d'informations : </param>
+			<label appearance="header">Attention, les courbes de Béziers ne sont pas gérées pour l’instant. Si c’est votre besoin, je vous conseille l’extension d’Ellen Wasbø :</label>
+			<label appearance="url">https://cutlings.datafil.no/inkscape-extension-removeduplicatelines/</label>
+			<separator />
+			<param name="infotext" type="description" xml:space="preserve">Pour plus d’informations : </param>
 			<label appearance="url">https://github.com/FrankSAURET/OptimLaser</label>
 		</page>
 	</param>

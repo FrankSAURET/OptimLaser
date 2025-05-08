@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: OptimLaser\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-11-01 19:30+0100\n"
-"PO-Revision-Date: 2025-04-30 15:58+0100\n"
+"PO-Revision-Date: 2025-05-07 20:12+0100\n"
 "Last-Translator: Frank SAURET \n"
 "Language-Team: en \n"
 "Language: en\n"
@@ -25,86 +25,73 @@ msgstr "Optimization for laser cutting"
 msgid "Options"
 msgstr "Options"
 
-#: OptimLaser.inx:10
+#: OptimLaser.inx:9
 msgid "Sauvegarder le fichier original et travailler sur un nouveau fichier avec « - Decoupe » au bout de son nom. Ce fichier sera ouvert à la fin. Vous devriez fermer les autres inkscape pour utiliser cette option."
 msgstr "Save the original file and work on a new file with \"- Cut\" at the end of its name. This file will be opened at the end. You should close other instances of Inkscape to use this option."
 
 #: OptimLaser.inx:12
 msgid "Les formes remplies de gris seront conservées ; les autres remplissages seront supprimés."
-msgstr "Shapes filled with gray will be kept; other fills will be removed."
+msgstr "Gray filled shapes will be preserved; other fills will be removed."
 
 #: OptimLaser.inx:15
 msgid "Tolérance : "
-msgstr "Tolerance:"
+msgstr "Tolerance: "
 
 #: OptimLaser.inx:16
-msgid "Mettre au moins la largeur du trait de coupe. L'unité utilisé est celle définie pour le document (Fichier > Propriétés du document > Affichage)."
-msgstr "Set at least the kerf. The unit used is the one defined for the document (File > Document Properties > Display)."
+msgid "Mettre au moins la largeur du trait de coupe. L'unité utilisée est celle définie pour le document (Fichier > Propriétés du document > Affichage)."
+msgstr "  Enter at least the cutting line width. The unit used is the one defined for the document (File > Document Properties > Display)."
 
-#: OptimLaser.inx:21
-msgid "\n\nSelon votre machine, l'ouverture d'une nouvelle occurence d'InkScape peut-être longue. Patientez ..."
-msgstr "\n\nDepending on your machine, opening a new instance of Inkscape may take a long time. Please wait..."
+#: OptimLaser.inx:19
+msgid "Supprimer les chemins de couleurs non gérés par la découpeuse laser (couleurs absentes de OptimLaser.ini)"
+msgstr "Remove paths with colors not supported by the laser cutter (colors not found in OptimLaser.ini)"
+
+#: OptimLaser.inx:20
+msgid "L'ordre des couleurs pour la découpe est défini dans le fichier OptimLaser.ini (son emplacement est défini dans Edition > Préférences > Système > Extensions utilisateur)."
+msgstr "The order of colors for cutting is defined in the OptimLaser.ini file (its location is defined in Edit > Preferences > System > User extensions)."
 
 #: OptimLaser.inx:23
+msgid "\n\nSelon votre machine, l'ouverture d'une nouvelle occurrence d'InkScape peut être longue. Patientez ..."
+msgstr "\n\nDepending on your machine, opening a new Inkscape instance may take time. Please wait..."
+
+#: OptimLaser.inx:26
 msgid "Information"
 msgstr "Information"
 
-#: OptimLaser.inx:25
-msgid "Ce script permet d'optimiser un dessin pour la découpe laser."
+#: OptimLaser.inx:27
+msgid "Ce script permet d’optimiser un dessin pour la découpe laser."
 msgstr "This script optimizes a drawing for laser cutting."
 
-#: OptimLaser.inx:30
-msgid "- Suppression des éléments superposés ;\n- Sauvegarde du fichier modifié avec un nouveau nom ;\n- Application des modifications à tout le document ou à la sélection ;\n- Optimisation de l'ordre de découpe."
-msgstr "- Removal of overlapping elements;\n- Save the modified file with a new name;\n- Apply changes to the entire document or to the selection;\n- Optimize the cutting order."
+#: OptimLaser.inx:32
+msgid "– Suppression des traits superposés (sauf les courbes de Béziers) ;\n– Sauvegarde avant et après dans 2 fichiers séparés ;\n– Optimisation de l’ordre de découpe ;\n– Suppression (possible) des traits non découpables (de couleurs non gérés par la découpeuse laser)."
+msgstr "– Removal of overlapping lines (except Bézier curves);\n– Before and after saving in 2 separate files;\n– Optimization of the cutting order;\n– Optional removal of non-cuttable lines (colors not managed by the laser cutter)."
 
 #: OptimLaser.inx:37
-msgid "Pour plus d'informations : "
-msgstr "For more information:"
+msgid "Attention, les courbes de Béziers ne sont pas gérées pour l’instant. Si c’est votre besoin, je vous conseille l’extension d’Ellen Wasbø :"
+msgstr "Note: Bézier curves are not currently supported. If this is your need, I recommend Ellen Wasbø's extension:"
 
-#: OptimLaser.inx:38
-msgid "https://github.com/FrankSAURET/OptimLaser"
-msgstr "https://github.com/FrankSAURET/OptimLaser"
+#: OptimLaser.inx:40
+msgid "Pour plus d’informations : "
+msgstr "For more information: "
 
-#: OptimLaser.inx:45
+#: OptimLaser.inx:46
 msgid "Découpe Laser"
 msgstr "Laser Cut"
 
 ###################################################################
-# Ajout du 30/04/2025
+# Ajout du 28/04/2025 
 ###################################################################
-
 #: OptimLaser.inx:10
-msgid "Les modifications seront appliquée à tout le document."
-msgstr "Changes will be applied to the entire document."
+msgid "Les modifications seront appliquées à tout le document."
+msgstr "The modifications will be applied to the entire document."
 
-#: OptimLaser.inx:19
-msgid "Supprimer les chemins de couleurs non gérés par la découpeuse laser (couleurs absentes de OptimLaser.ini)"
-msgstr "Remove paths with colors not managed by the laser cutter (colors not in OptimLaser.ini)"
-
-#: OptimLaser.inx:20
-msgid "L'ordre des couleurs pour la découpe est défini dans le fichier OptimLaser.ini"
-msgstr "The color order for cutting is defined in the OptimLaser.ini file"
-
-#: OptimLaser.py:72
-msgid "Sauvegarder fichier avec « - Decoupe » au bout de son nom."
-msgstr "Save file with \"- Cut\" at the end of its name."
-
-#: OptimLaser.py:77
-msgid "Supprimer les chemins de couleurs non gérés"
-msgstr "Remove unmanaged color paths"
-
-#: OptimLaser.py:82
-msgid "Tolérance pour la détection des segments colinéaires"
-msgstr "Tolerance for collinear segment detection"
-
-#: OptimLaser.py:763
+#: OptimLaser.py:1093
 msgid "Attention !"
 msgstr "Warning!"
 
-#: OptimLaser.py:763
+#: OptimLaser.py:1093
 msgid "Vous devez enregistrer le fichier puis relancer l'extension."
 msgstr "You must save the file and then restart the extension."
 
-#: OptimLaser.py:795
+#: OptimLaser.py:1125
 msgid " - decoupe"
 msgstr " - cut"

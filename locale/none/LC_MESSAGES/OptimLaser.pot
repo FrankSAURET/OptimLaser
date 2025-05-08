@@ -9,10 +9,10 @@ msgstr ""
 "Project-Id-Version: OptimLaser\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-11-01 19:30+0100\n"
-"PO-Revision-Date: 2025-04-30 15:58+0100\n"
+"PO-Revision-Date: 2025-05-07 20:12+0100\n"
 "Last-Translator: Frank SAURET \n"
-"Language-Team: en \n"
-"Language: en\n"
+"Language-Team: none \n"
+"Language: none\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -25,7 +25,7 @@ msgstr ""
 msgid "Options"
 msgstr ""
 
-#: OptimLaser.inx:10
+#: OptimLaser.inx:9
 msgid "Sauvegarder le fichier original et travailler sur un nouveau fichier avec « - Decoupe » au bout de son nom. Ce fichier sera ouvert à la fin. Vous devriez fermer les autres inkscape pour utiliser cette option."
 msgstr ""
 
@@ -38,43 +38,7 @@ msgid "Tolérance : "
 msgstr ""
 
 #: OptimLaser.inx:16
-msgid "Mettre au moins la largeur du trait de coupe. L'unité utilisé est celle définie pour le document (Fichier > Propriétés du document > Affichage)."
-msgstr ""
-
-#: OptimLaser.inx:21
-msgid "\n\nSelon votre machine, l'ouverture d'une nouvelle occurence d'InkScape peut-être longue. Patientez ..."
-msgstr ""
-
-#: OptimLaser.inx:23
-msgid "Information"
-msgstr ""
-
-#: OptimLaser.inx:25
-msgid "Ce script permet d'optimiser un dessin pour la découpe laser."
-msgstr ""
-
-#: OptimLaser.inx:30
-msgid "- Suppression des éléments superposés ;\n- Sauvegarde du fichier modifié avec un nouveau nom ;\n- Application des modifications à tout le document ou à la sélection ;\n- Optimisation de l'ordre de découpe."
-msgstr ""
-
-#: OptimLaser.inx:37
-msgid "Pour plus d'informations : "
-msgstr ""
-
-#: OptimLaser.inx:38
-msgid "https://github.com/FrankSAURET/OptimLaser"
-msgstr ""
-
-#: OptimLaser.inx:45
-msgid "Découpe Laser"
-msgstr ""
-
-###################################################################
-# Ajout du 30/04/2025
-###################################################################
-
-#: OptimLaser.inx:10
-msgid "Les modifications seront appliquée à tout le document."
+msgid "Mettre au moins la largeur du trait de coupe. L'unité utilisée est celle définie pour le document (Fichier > Propriétés du document > Affichage)."
 msgstr ""
 
 #: OptimLaser.inx:19
@@ -82,29 +46,51 @@ msgid "Supprimer les chemins de couleurs non gérés par la découpeuse laser (c
 msgstr ""
 
 #: OptimLaser.inx:20
-msgid "L'ordre des couleurs pour la découpe est défini dans le fichier OptimLaser.ini"
+msgid "L'ordre des couleurs pour la découpe est défini dans le fichier OptimLaser.ini (son emplacement est défini dans Edition > Préférences > Système > Extensions utilisateur)."
 msgstr ""
 
-#: OptimLaser.py:72
-msgid "Sauvegarder fichier avec « - Decoupe » au bout de son nom."
+#: OptimLaser.inx:23
+msgid "\n\nSelon votre machine, l'ouverture d'une nouvelle occurrence d'InkScape peut être longue. Patientez ..."
 msgstr ""
 
-#: OptimLaser.py:77
-msgid "Supprimer les chemins de couleurs non gérés"
+#: OptimLaser.inx:26
+msgid "Information"
 msgstr ""
 
-#: OptimLaser.py:82
-msgid "Tolérance pour la détection des segments colinéaires"
+#: OptimLaser.inx:27
+msgid "Ce script permet d'optimiser un dessin pour la découpe laser."
 msgstr ""
 
-#: OptimLaser.py:763
+#: OptimLaser.inx:32
+msgid "– Suppression des traits superposés (sauf les courbes de Béziers) ;\n– Sauvegarde avant et après dans 2 fichiers séparés ;\n– Optimisation de l'ordre de découpe ;\n– Suppression (possible) des traits non découpables (de couleurs non gérés par la découpeuse laser)."
+msgstr ""
+
+#: OptimLaser.inx:37
+msgid "Attention, les courbes de Béziers ne sont pas gérées pour l'instant. Si c'est votre besoin, je vous conseille l'extension d'Ellen Wasbø :"
+msgstr ""
+
+#: OptimLaser.inx:40
+msgid "Pour plus d'informations : "
+msgstr ""
+
+#: OptimLaser.inx:46
+msgid "Découpe Laser"
+msgstr ""
+
+
+########## Ajout du 28/04/2025 #########
+#: OptimLaser.inx:10
+msgid "Les modifications seront appliquées à tout le document."
+msgstr ""
+
+#: OptimLaser.py:1093
 msgid "Attention !"
 msgstr ""
 
-#: OptimLaser.py:763
+#: OptimLaser.py:1093
 msgid "Vous devez enregistrer le fichier puis relancer l'extension."
 msgstr ""
 
-#: OptimLaser.py:795
+#: OptimLaser.py:1125
 msgid " - decoupe"
 msgstr ""
