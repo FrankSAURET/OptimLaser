@@ -1,3 +1,4 @@
 # Ignore all zip files
 *.zip
 *.json
+pjx/

@@ -1,31 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<inkscape-extension translationdomain="OptimLaser" xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+<inkscape-extension translationdomain="OptimLaser"
+	xmlns="http://www.inkscape.org/namespace/inkscape/extension">
 	<name>Optimisation pour découpe laser</name>
 	<id>franksauret.OptimLaser</id>
-	<dependency type="executable" location="extensions">OptimLaser.py</dependency>
+	<dependency type="executable" location="inx">OptimLaser.py</dependency>
 
 	<param name="tab" type="notebook">
+
 		<page name="options" gui-text="Options">
-			<param name="Sauvegarde" type="boolean" gui-text="Sauvegarder le fichier original et travailler sur un nouveau fichier avec « - Decoupe » au bout de son nom. Ce fichier sera ouvert à la fin. Vous devriez fermer les autres inkscape pour utiliser cette option.">true</param>
+			<param name="SauvegarderSousDecoupe" type="boolean" gui-text="Sauvegarder le fichier original et travailler sur un nouveau fichier avec « - Decoupe » au bout de son nom. Ce fichier sera ouvert à la fin. Vous devriez fermer les autres inkscape pour utiliser cette option.">true</param>
 			<label >Les modifications seront appliquées à tout le document.</label>
 			<separator />
 			<param name="grayinfo" type="description">Les formes remplies de gris seront conservées ; les autres remplissages seront supprimés.</param>
 			<separator />
 			<hbox>
-				<param name="tolerance" type="float" precision="3" min="0.001" max="1.000" gui-text="Tolérance : ">0.100</param>
-				<label >Mettre au moins la largeur du trait de coupe. L'unité utilisée est celle définie pour le document (Fichier > Propriétés du document > Affichage).</label>
-				<spacer size="expand"/>
+			<param name="tolerance" type="float" precision="3" min="0.001" max="1.000" gui-text="Tolérance : ">0.100</param>
+			<label >Mettre au moins la largeur du trait de coupe. L'unité utilisée est celle définie pour le document (Fichier > Propriétés du document > Affichage).</label>
+			<spacer size="expand"/>
 			</hbox>
 			<param name="SupprimerCouleursNonGerees" type="boolean" gui-text="Supprimer les chemins de couleurs non gérés par la découpeuse laser (couleurs absentes de OptimLaser.ini)">true</param>
+			<separator />
+			<hbox>
+			<param name="ModeTraitement" type="optiongroup" appearance="radio" gui-text="Mode de traitement des courbes :">
+				<option value="standard">Standard : Plus rapide, les courbes de béziers sont ignorées de même que les chevauchements partiels des ellipses.</option>
+				<option value="linearisation">Avancé : Plus lent, linéarisation de toutes les courbes en segments droits.</option>
+			</param>
+			<spacer size="expand"/>
+			</hbox>
+			<separator />
 			<label >L'ordre des couleurs pour la découpe est défini dans le fichier OptimLaser.ini (son emplacement est défini dans Edition > Préférences > Système > Extensions utilisateur).</label>
 			<label appearance="header" xml:space="preserve">
 
 Selon votre machine, l'ouverture d'une nouvelle occurrence d'InkScape peut être longue. Patientez ...</label>
 		</page>
+
 		<page name="info" gui-text="Information">
 			<label appearance="header">Ce script permet d’optimiser un dessin pour la découpe laser.</label>
 			<hbox>
-			<spacer/>
+				<spacer/>
 				<vbox>
 					<param name="infotext" type="description" xml:space="preserve">– Suppression des traits superposés (sauf les courbes de Béziers) ;
 – Sauvegarde avant et après dans 2 fichiers séparés ;

@@ -1,6 +1,6 @@
 #!/usr/bin/env/python
 '''
-Codé par Frank SAURET et Copilot janvier 2023 - mai 2025
+Codé par Frank SAURET et Copilot janvier 2023 - novembre 2025
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -35,8 +35,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 # 2025.1 23 Février 2025 Correction d'un bug
 # 2025.2 Avril 2025 Correction de bugs Réécriture de la fonction de détection de chevauchement réécriture de la fonction d'optimisation de l'ordre de découpe.
 # 2025.3 Mai 2025 Correction de traitement des chemins complexes. Suppression de la gestion des chevauchement pour les courbes de beziers qui ne marchait pas vraiment bien. Réécriture de la gestion des ellipses et arcs. Optimisation du traitement.
+# 2025.4 Novembre 2025 Ajout du choix de traitement.
 
-__version__ = "2025.3"
+
+__version__ = "2025.4"
 
 import os
 import subprocess
@@ -56,23 +58,11 @@ class OptimLaser(inkex.EffectExtension):
         self.numeroChemin = 0
         self._distance_cache = {}
         inkex.Effect.__init__(self)
-        self.arg_parser.add_argument("--tab",
-            type=str,
-            dest="tab",
-            default="options")
-        self.arg_parser.add_argument("-S","--SauvegarderSousDecoupe",
-            type=inkex.Boolean,
-            dest="SauvegarderSousDecoupe",
-            default=True)
-        self.arg_parser.add_argument("--SupprimerCouleursNonGerees",
-            type=inkex.Boolean,
-            dest="SupprimerCouleursNonGerees",
-            default=True)
-        self.arg_parser.add_argument("-t","--tolerance",
-            type=float,
-            dest="tolerance",
-            default="0.15")
-
+        self.arg_parser.add_argument("--tab")
+        self.arg_parser.add_argument("--SauvegarderSousDecoupe", type=inkex.Boolean, default=True)
+        self.arg_parser.add_argument("--SupprimerCouleursNonGerees", type=inkex.Boolean, default=True)
+        self.arg_parser.add_argument("--tolerance", type=float, default="0.15")
+        self.arg_parser.add_argument("--ModeTraitement", default="standard")
     
     def get_path_envelope(self, path, tolerance=0.0):
         """Crée une enveloppe autour d'un chemin simple (M + A/Q/C/L) avec une tolérance donnée
@@ -210,7 +200,7 @@ class OptimLaser(inkex.EffectExtension):
             
         elif draw_cmd.letter == 'Q':  # Courbe quadratique de Bézier
             # Similaire à la courbe cubique, mais avec un seul point de contrôle
-            end_x, end_y = draw_cmd.x, draw_cmd.y  # Point final
+            end_x, end_y = draw_cmd.x2, draw_cmd.y2  # Point final
             
             # Accéder directement aux attributs de contrôle pour les courbes quadratiques
             if hasattr(draw_cmd, 'x1') and hasattr(draw_cmd, 'y1'):
@@ -983,7 +973,7 @@ class OptimLaser(inkex.EffectExtension):
                                 
                             elif path_type == 'Q':
                                 # Pour les courbes quadratiques, il n'y a qu'un seul point de contrôle
-                                dist_ctrl = math.dist((cmd1.x1, cmd1.y1), (cmd2.x1, cmd2.y1))
+                                dist_ctrl = math.dist((cmd1.x2, cmd1.y2), (cmd2.x2, cmd2.y2))
                                 control_points_similar = (dist_ctrl <= tolerance * 2)
                             
                             if control_points_similar:

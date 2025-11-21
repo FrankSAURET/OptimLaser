@@ -1,7 +1,7 @@
 # OptimLaser
 -----
-Version 2025-3
-For inkscape V 1.x (tested from 1.2 to 1.3.2)
+Version 2025-4
+For inkscape V 1.x (tested from 1.2 to 1.4.2)
 -----
 This script optimizes a drawing for laser cutting:
 
