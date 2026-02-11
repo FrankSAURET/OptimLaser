@@ -116,7 +116,9 @@
 <span style="color:#045D97">**Pour créer une traduction :**</span>
 
 <span style="color:#045D97">1️⃣ Copiez le fichier <b>OptimLaser.pot</b> et renommez-le en <b>OptimLaser.po</b> ;</span>
+
 <span style="color:#045D97">2️⃣ Traduisez les chaînes <b>msgstr ""</b> dans le fichier <b>.po</b> avec un éditeur de texte ou un outil comme [Poedit](https://poedit.net/) ;</span>
+
 <span style="color:#045D97">3️⃣ Compilez le fichier <b>.po</b> en <b>.mo</b> avec la commande :</span>
 
 ```bash
@@ -238,7 +240,9 @@ A blank translation template file (`.pot`) is located at:
 **To create a translation:**
 
 1️⃣ Copy the file `OptimLaser.pot` and rename it to `OptimLaser.po`;
+
 2️⃣ Translate the `msgstr ""` strings in the `.po` file using a text editor or a tool like [Poedit](https://poedit.net/);
+
 3️⃣ Compile the `.po` file into `.mo` with the command:
 
 ```bash
