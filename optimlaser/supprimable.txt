@@ -1,0 +1,163 @@
+================================================================================
+ FICHIERS SUPPRIMABLES - OptimLaser
+ Nettoyage effectué le 11 février 2026
+================================================================================
+
+Tous les fichiers ci-dessous ont été déplacés dans le dossier "supprimable/".
+Ils peuvent être supprimés définitivement sans impact sur le fonctionnement
+de l'extension OptimLaser.
+
+================================================================================
+ 1. FICHIERS DÉPLACÉS DANS supprimable/
+================================================================================
+
+--- Sauvegardes et archives ---
+  OptimLaser - Copie.py                          (copie de sauvegarde du fichier principal)
+  optimlaser 11 Fév 2026 à 10h08.rar             (archive datée)
+  optimlaser 11 Fév 2026 à 12h51.rar             (archive datée)
+  optimlaser 6 Fév 2026 à 17h29 - Fonctionne sauf courbes.rar  (archive datée)
+  OptimLaser 8 Jan 2026 à 13h57 - droite arc ellipse cercles ok.rar  (archive datée)
+
+--- Scripts de debug/test ---
+  debug_bezier.py                                 (script standalone de débogage courbes Bézier)
+  test_curve_overlap.py                           (script standalone test chevauchements)
+  test_optimlaser.py                              (script standalone simulation appel Inkscape)
+
+--- Fichiers SVG de test ---
+  Test.svg
+  Test - chemins simples.svg
+  Test - decoupe.svg
+  Test - doublons supprimés.svg
+  TestSimple.svg
+  TestSimple - Copie.svg
+  TestSimple - decoupe.svg
+  TestSimple - decoupe - decoupe.svg
+  TestSimple - doublons supprimés.svg
+
+--- Fichiers divers ---
+  OptimLaser.svg                                  (source vectorielle icône, seul .png nécessaire)
+  Prompts en cours.txt                            (notes de travail)
+
+--- Module inutilisé ---
+  optimizer.py                                    (module PathOptimizer jamais instancié ;
+                                                   toute la logique d'optimisation est
+                                                   réimplémentée dans OptimLaser.py)
+
+--- Dossiers ---
+  .vscode/                                        (config VS Code locale, bookmarks.json)
+  utils/                                          (package vide, jamais importé)
+
+--- Supprimés définitivement ---
+  __pycache__/                                    (cache bytecode Python, régénéré automatiquement)
+  geometry/__pycache__/                           (idem)
+  ui/__pycache__/                                 (idem)
+
+
+================================================================================
+ 2. CODE SUPPRIMÉ DANS OptimLaser.py
+================================================================================
+
+--- Imports supprimés ---
+  • from inkex import Transform           → jamais utilisé (inkex.Transform() utilisé à la place)
+  • from optimizer import PathOptimizer   → jamais instancié dans le code
+  • import copy                           → plus nécessaire après suppression ListeDeGris
+  • import re (local, L1060)              → redondant avec l'import module-level
+  • import json (local, 2 occurrences)    → remplacé par import module-level
+
+--- Imports ajoutés (corrections de bugs) ---
+  • import json                           → était seulement importé localement dans 2 méthodes
+  • from tkinter import messagebox        → était utilisé L3114 sans import
+
+--- Méthodes mortes supprimées ---
+  • _extract_paths_from_svg()             (~210 lignes) : méthode d'extraction jamais appelée,
+                                          l'extraction réelle est dans adjust_overlapping_segments()
+  • _remove_duplicates()                  (~35 lignes) : jamais appelée
+  • _merge_overlapping_lines()            (~85 lignes) : appelée uniquement par _remove_duplicates (morte)
+  • _merge_overlapping_arcs()             (~85 lignes) : appelée uniquement par _remove_duplicates (morte)
+  • _reverse_path_commands()              (~80 lignes) : doublon de _reverse_path_object, jamais appelée
+  • get_path_envelope()                   (~185 lignes) : le résultat était stocké mais jamais lu
+  • _build_chain()                        (~45 lignes) : jamais appelée, remplacée par _build_curve_chains
+  • _get_next_connection()                (~50 lignes) : appelée uniquement par _build_chain (morte)
+
+--- Code mort / bugs corrigés ---
+  • has_C_command (variable)              : calculée mais jamais lue (dans _extract_paths_from_svg, supprimé)
+  • self.ListeDeGris + copy.deepcopy      : ListeDeGris jamais initialisé, copy jamais importé → NameError
+                                            Bloc gris supprimé (remplissage mis à 'none' sans stocker)
+  • __import__('re').findall(...)          : remplacé par re.findall(...) (re déjà importé)
+  • _(" - decoupe")                       : fonction _() (gettext) jamais définie → remplacé par " - decoupe"
+  • _('Attention !'), _('Vous devez...')   : idem, remplacé par chaînes littérales
+  • 'envelope': envelope dans dict         : clé stockée mais jamais lue, supprimée
+
+
+================================================================================
+ 3. CODE SUPPRIMÉ DANS ui/gui.py
+================================================================================
+
+--- Imports supprimés ---
+  • filedialog                            → importé de tkinter mais jamais utilisé
+
+--- Méthodes mortes supprimées ---
+  • _create_colors_tab()                  (~90 lignes) : ancienne version de gestion des couleurs,
+                                          remplacée par l'intégration dans _create_advanced_tab()
+  • _is_dark_color()                      (~6 lignes) : méthode statique jamais appelée
+  • close_progress_window()               (~6 lignes) : jamais appelée, remplacée par
+                                          complete_progress() + _close_completed_progress()
+
+--- Code dupliqué supprimé ---
+  • Premier button_frame + add_new_preset + save_presets dans _edit_speed_presets()
+                                          (~90 lignes) : définitions dupliquées (écrasées par la
+                                          seconde définition plus bas). Créait des boutons
+                                          fantômes à droite de la fenêtre.
+
+--- Debug supprimé ---
+  • print(f"Erreur lors du chargement de la config: {e}")
+                                          → remplacé par passage silencieux (except: pass)
+
+
+================================================================================
+ 4. CODE SUPPRIMÉ DANS duplicate_remover.py
+================================================================================
+
+  • self.distance_cache: Dict = {}        → attribut initialisé mais jamais lu ni écrit
+  • class SegmentGroup (dataclass)        (~13 lignes) : définie mais jamais instanciée
+  • get_segments_to_remove()              (~60 lignes) : méthode jamais appelée depuis aucun fichier
+
+
+================================================================================
+ 5. CODE SUPPRIMÉ DANS geometry/__init__.py
+================================================================================
+
+  • Imports inutilisés : Union, Tuple     → retirés de la ligne d'import typing
+  • class GeometricOperations             (~75 lignes) : point_in_polygon() et convex_hull()
+                                          jamais appelées depuis aucun fichier du projet
+
+
+================================================================================
+ 6. CODE SUPPRIMÉ DANS optimizer.py (fichier déplacé dans supprimable/)
+================================================================================
+
+  Le module entier est déplacé car PathOptimizer, TravelStatistics, OptimizationStrategy,
+  NearestNeighborStrategy, TwoOptStrategy et ClusteringStrategy ne sont jamais instanciés.
+  Toute la logique d'optimisation est réimplémentée directement dans OptimLaser.py.
+
+  Avant déplacement, les imports inutilisés suivants avaient été nettoyés :
+  • import heapq                          → jamais utilisé
+  • Callable (de typing)                  → jamais utilisé
+
+
+================================================================================
+ 7. CODE SUPPRIMÉ DANS __init__.py (racine optimlaser)
+================================================================================
+
+  • Import de PathOptimizer               → retiré (optimizer.py déplacé dans supprimable)
+  • 'PathOptimizer' retiré de __all__
+
+
+================================================================================
+ RÉSUMÉ
+================================================================================
+
+  Fichiers déplacés :        22 (fichiers + dossiers)
+  Lignes de code supprimées : ~1 200 lignes (code mort, doublons, debug)
+  Bugs corrigés :            3 (NameError: copy, messagebox, _())
+

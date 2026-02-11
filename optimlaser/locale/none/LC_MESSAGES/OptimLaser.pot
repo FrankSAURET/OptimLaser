@@ -1,0 +1,411 @@
+# OptimLaser - Translation Template
+# Copyright (C) 2025 Frank SAURET
+#
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ui/gui.py:760
+msgid "+ Ajouter"
+msgstr ""
+
+#: ui/gui.py:456
+msgid "Activer l'optimisation globale"
+msgstr ""
+
+#: ui/gui.py:947 ui/gui.py:1006
+msgid "Ajouter"
+msgstr ""
+
+#: ui/gui.py:954
+msgid "Ajouter un préréglage"
+msgstr ""
+
+#: ui/gui.py:1365
+msgid "Annulation en cours..."
+msgstr ""
+
+#: ui/gui.py:378 ui/gui.py:948 ui/gui.py:1007 ui/gui.py:1346
+msgid "Annuler"
+msgstr ""
+
+#: ui/gui.py:385
+msgid "Appliquer"
+msgstr ""
+
+#: ui/gui.py:433
+msgid "Arcs et cercles similaires"
+msgstr ""
+
+#: ui/gui.py:994 ui/gui.py:998
+msgid "Attention"
+msgstr ""
+
+#: OptimLaser.py:2327
+msgid "Attention !"
+msgstr ""
+
+#: ui/gui.py:1576
+msgid "Auteur : Frank SAURET"
+msgstr ""
+
+#: ui/gui.py:1067 ui/gui.py:1128
+msgid "Choisir une couleur"
+msgstr ""
+
+#: ui/gui.py:1223
+msgid "Configuration enregistrée dans OptimLaser.json"
+msgstr ""
+
+#: ui/gui.py:899
+msgid "Confirmation"
+msgstr ""
+
+#: ui/gui.py:434
+msgid "Courbes de Bézier (quadratiques et cubiques)"
+msgstr ""
+
+#: OptimLaser.py:2388
+msgid "Création du fichier de découpe..."
+msgstr ""
+
+#: ui/gui.py:492
+msgid "Direction :"
+msgstr ""
+
+#: OptimLaser.py:2402
+msgid "Durée estimée de découpe : {}m{:02d}s"
+msgstr ""
+
+#: OptimLaser.py:2347
+msgid "Découpage en chemins simples..."
+msgstr ""
+
+#: OptimLaser.py:2331
+msgid "Dégroupement et transformation des éléments..."
+msgstr ""
+
+#: ui/gui.py:1332
+msgid "Démarrage..."
+msgstr ""
+
+#: ui/gui.py:431
+msgid "Détection avancée des doublons :"
+msgstr ""
+
+#: ui/gui.py:403
+msgid "Détection de doublons"
+msgstr ""
+
+#: ui/gui.py:1579
+msgid "Détection de doublons intelligente"
+msgstr ""
+
+#: ui/gui.py:575
+msgid "Enregistrer"
+msgstr ""
+
+#: ui/gui.py:627
+msgid "Enregistrer le fichier optimisé avec le suffixe ' - découpe'"
+msgstr ""
+
+#: ui/gui.py:575
+msgid "Enregistrer les modifications dans OptimLaser.json ?"
+msgstr ""
+
+#: ui/gui.py:1225
+msgid "Erreur"
+msgstr ""
+
+#: ui/gui.py:1225
+msgid "Erreur lors de l'enregistrement : {}"
+msgstr ""
+
+#: ui/gui.py:1424 ui/gui.py:1470
+msgid "Fermeture automatique de la fenêtre dans {} s"
+msgstr ""
+
+#: OptimLaser.py:2313
+msgid "Initialisation..."
+msgstr ""
+
+#: ui/gui.py:476
+msgid "Itérations max (pour optimisation locale):"
+msgstr ""
+
+#: ui/gui.py:435
+msgid "La tolérance définit la distance maximale en mm pour considérer deux éléments comme identiques."
+msgstr ""
+
+#: ui/gui.py:858 ui/gui.py:917
+msgid "Label"
+msgstr ""
+
+#: ui/gui.py:979
+msgid "Label :"
+msgstr ""
+
+#: ui/gui.py:1298
+msgid "Le fichier de découpe va s'ouvrir."
+msgstr ""
+
+#: OptimLaser.py:1219
+msgid "Le fichier original a été restauré."
+msgstr ""
+
+#: ui/gui.py:1299
+msgid "Le fichier original n'aura pas été modifié."
+msgstr ""
+
+#: ui/gui.py:994
+msgid "Le label ne peut pas être vide"
+msgstr ""
+
+#: ui/gui.py:1577
+msgid "Licence : GPLv2"
+msgstr ""
+
+#: ui/gui.py:432
+msgid "Lignes identiques ou partiellement superposées"
+msgstr ""
+
+#: ui/gui.py:1578
+msgid "Modules :"
+msgstr ""
+
+#: ui/gui.py:857 ui/gui.py:916
+msgid "Nom interne"
+msgstr ""
+
+#: ui/gui.py:1651
+msgid "OptimLaser"
+msgstr ""
+
+#: ui/gui.py:350
+msgid "OptimLaser - Optimisation pour découpe laser"
+msgstr ""
+
+#: ui/gui.py:1575
+msgid "OptimLaser v{}"
+msgstr ""
+
+#: OptimLaser.py:2371
+msgid "Optimisation de l'ordre de découpe..."
+msgstr ""
+
+#: ui/gui.py:450
+msgid "Optimisation de la découpe"
+msgstr ""
+
+#: OptimLaser.py:2363
+msgid "Optimisation des chemins..."
+msgstr ""
+
+#: ui/gui.py:1580
+msgid "Optimisation du parcours (3 stratégies)"
+msgstr ""
+
+#: ui/gui.py:1256 ui/gui.py:1289
+msgid "Optimisation en cours..."
+msgstr ""
+
+#: ui/gui.py:469 ui/gui.py:518 OptimLaser.py:247
+msgid "Optimisation locale"
+msgstr ""
+
+#: ui/gui.py:518
+msgid "Optimisation par échanges, meilleure qualité"
+msgstr ""
+
+#: ui/gui.py:1407
+msgid "Optimisation terminée !"
+msgstr ""
+
+#: ui/gui.py:694
+msgid "Ordre des couleurs"
+msgstr ""
+
+#: ui/gui.py:494
+msgid "Par colonnes"
+msgstr ""
+
+#: ui/gui.py:499
+msgid "Par lignes"
+msgstr ""
+
+#: ui/gui.py:400
+msgid "Paramètres"
+msgstr ""
+
+#: ui/gui.py:566 ui/gui.py:590
+msgid "Paramètres avancés"
+msgstr ""
+
+#: ui/gui.py:469 ui/gui.py:517 OptimLaser.py:245
+msgid "Plus proche voisin"
+msgstr ""
+
+#: ui/gui.py:636
+msgid "Préréglage :"
+msgstr ""
+
+#: ui/gui.py:517
+msgid "Rapide, solution de bonne qualité"
+msgstr ""
+
+#: ui/gui.py:519
+msgid "Regroupe par bandes (lignes ou colonnes) de taille définie"
+msgstr ""
+
+#: ui/gui.py:620
+msgid "Sauvegarder sous Découpe"
+msgstr ""
+
+#: ui/gui.py:949
+msgid "Sauver"
+msgstr ""
+
+#: ui/gui.py:436
+msgid "Si vous ne savez pas quoi mettre mettez la largeur du trait de coupe."
+msgstr ""
+
+#: ui/gui.py:1302
+msgid "Si vous souhaitez le garder intact pour faciliter les"
+msgstr ""
+
+#: OptimLaser.py:2400
+msgid "Stratégie : {}"
+msgstr ""
+
+#: ui/gui.py:462
+msgid "Stratégie d'optimisation :"
+msgstr ""
+
+#: ui/gui.py:1223
+msgid "Succès"
+msgstr ""
+
+#: OptimLaser.py:2339
+msgid "Suppression des couleurs non gérées..."
+msgstr ""
+
+#: OptimLaser.py:2355
+msgid "Suppression des doublons..."
+msgstr ""
+
+#: ui/gui.py:899
+msgid "Supprimer le préréglage '{}' ?"
+msgstr ""
+
+#: ui/gui.py:605
+msgid "Supprimer les dessins de couleurs non gérées"
+msgstr ""
+
+#: ui/gui.py:504
+msgid "Taille (mm) :"
+msgstr ""
+
+#: ui/gui.py:1413
+msgid "Terminé."
+msgstr ""
+
+#: ui/gui.py:407
+msgid "Tolérance de détection (mm):"
+msgstr ""
+
+#: OptimLaser.py:1219
+msgid "Traitement annulé."
+msgstr ""
+
+#: OptimLaser.py:2393
+msgid "Traitement terminé."
+msgstr ""
+
+#: OptimLaser.py:2401
+msgid "Trajet à vide réduit de {:.1f}%"
+msgstr ""
+
+#: ui/gui.py:998
+msgid "Un préréglage avec le nom '{}' existe déjà"
+msgstr ""
+
+#: ui/gui.py:859 ui/gui.py:918
+msgid "Vitesse (mm/s)"
+msgstr ""
+
+#: ui/gui.py:985
+msgid "Vitesse (mm/s) :"
+msgstr ""
+
+#: ui/gui.py:663
+msgid "Vitesse de découpe :"
+msgstr ""
+
+#: ui/gui.py:678
+msgid "Vitesse à vide :"
+msgstr ""
+
+#: ui/gui.py:633
+msgid "Vitesses (mm/s)"
+msgstr ""
+
+#: OptimLaser.py:2327
+msgid "Vous devez enregistrer le fichier puis relancer l\\'extension."
+msgstr ""
+
+#: ui/gui.py:469 ui/gui.py:519 ui/gui.py:791 OptimLaser.py:249
+msgid "Zonage"
+msgstr ""
+
+#: ui/gui.py:1304
+msgid "\\\"Sauvegarder sous découpe\\\""
+msgstr ""
+
+#: ui/gui.py:612
+msgid "couleurs absentes de la liste ci-contre"
+msgstr ""
+
+#: ui/gui.py:1303
+msgid "retouches ultérieures, cochez la case :"
+msgstr ""
+
+#: OptimLaser.py:2399
+msgid "{} chemins optimisés"
+msgstr ""
+
+#: ui/gui.py:371
+msgid "À propos"
+msgstr ""
+
+#: ui/gui.py:1516
+msgid "À propos - OptimLaser"
+msgstr ""
+
+#: ui/gui.py:809
+msgid "Éditer les préréglages de vitesses"
+msgstr ""
+
+#: ui/gui.py:767
+msgid "− Supprimer"
+msgstr ""
+
+#: ui/gui.py:746
+msgid "▲ Monter"
+msgstr ""
+
+#: ui/gui.py:753
+msgid "▼ Descendre"
+msgstr ""
+
+#: ui/gui.py:1301
+msgid "⚠ Toutes les modifications sont faites dans le fichier original."
+msgstr ""
+
+#: OptimLaser.inx
+msgid "Optimisation pour découpe laser"
+msgstr ""
+
+#: OptimLaser.inx
+msgid "Découpe Laser"
+msgstr ""
