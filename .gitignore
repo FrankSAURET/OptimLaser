@@ -1,4 +1,5 @@
 # Ignore all zip files
 *.zip
-*.json
 pjx/
+*.json
+!optimlaser/*.json
