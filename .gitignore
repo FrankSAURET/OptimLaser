@@ -1,7 +1,11 @@
 # Ignore all zip files
 *.zip
-pjx/
+
 # ignore tous les fichiers .json du projet.
 *.json
 # Sauf ceux du dossier OptimLaser
 !optimlaser/*.json
+
+# Ignorer les dossiers
+Sauvegardes/
+pjx/

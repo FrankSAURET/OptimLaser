@@ -36,6 +36,7 @@
 - <span style="color:#045D97">🚀 Optimise l'ordre de découpe pour réduire les déplacements à vide ;</span>
 - <span style="color:#045D97">💾 Sauvegarde le fichier optimisé sous un nouveau nom (suffixe « - découpe ») ;</span>
 - <span style="color:#045D97">🖥️ Interface graphique dynamique avec mémorisation des derniers réglages.</span>
+- <span style="color:#045D97">🩶 Les éléments gris sont préservés pour la gravure.</span>
 
 ---
 

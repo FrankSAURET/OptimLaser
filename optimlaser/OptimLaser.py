@@ -21,6 +21,7 @@ from datetime import datetime
 import warnings
 from tkinter import messagebox
 import gettext
+import copy
 
 # Configurer gettext pour l'internationalisation
 _locale_dir = os.path.join(os.path.dirname(__file__), 'locale')
@@ -51,8 +52,10 @@ except ImportError:
     from ui.gui import show_gui
 
 class OptimLaser(inkex.EffectExtension):
+
     """Extension Inkscape pour l'optimisation de découpe laser"""
     _distance_cache = {}
+    ListeDeGris = []
     
     def add_arguments(self, pars):
         """Ajoute les arguments de la ligne de commande (pour compatibilité)"""
@@ -117,7 +120,75 @@ class OptimLaser(inkex.EffectExtension):
         """
         if hasattr(self, 'gui_instance') and self.gui_instance:
             self.gui_instance.update_progress(task_text)
+  
+    def save_gray_elements(self):
+        """
+        Sauvegarde les éléments gris (remplissage ou contour) et leur couche dans ListeDeGris.
+        """
+        self.ListeDeGris = []
+        for element in self.svg.descendants():
+            couche = self.find_layer(element)
+            style = element.style
+            style_save = element.style
+            # Vérifier le remplissage gris
+            fill_value = style.get('fill', None)
+            is_gray_fill = False
+            if fill_value and fill_value.lower() != 'none':
+                fill_color = inkex.Color(style('fill', None))
+                r, v, b = fill_color.to_rgb()
+                if (r == v and r == b and v == b):
+                    is_gray_fill = True
+                    style['fill'] = 'none'
+            # Vérifier le contour gris
+            stroke_value = style.get('stroke', None)
+            is_gray_stroke = False
+            if stroke_value and stroke_value.lower() != 'none':
+                try:
+                    stroke_color = inkex.Color(style('stroke', None))
+                    r, v, b = stroke_color.to_rgb()
+                    if (r == v and r == b and v == b):
+                        is_gray_stroke = True
+                except Exception:
+                    pass
+            # Ajouter à ListeDeGris si l'un ou l'autre est gris
+            if is_gray_fill or is_gray_stroke:
+                self.ListeDeGris.append((copy.deepcopy(element), couche, style_save))
     
+    def restore_gray_elements(self):
+        """
+        Replace les éléments gris sauvegardés dans ListeDeGris dans leur couche d'origine.
+        Si la couleur du contour est une couleur de découpe (définie dans le JSON), elle devient transparente.
+        """
+        # Charger les couleurs de découpe depuis le JSON
+        cutting_colors = set()
+        json_path = os.path.join(os.path.dirname(__file__), 'OptimLaser.json')
+        try:
+            with open(json_path, 'r') as json_file:
+                config = json.load(json_file)
+                cutting_colors = {c.lower() for c in config.get('colors', [])}
+        except Exception:
+            pass
+
+        compteur_gris = 0
+        for element, couche, style in self.ListeDeGris:
+            element.style = style
+            # Renommer l'id du chemin
+            element.set('id', f'chemin_gris{compteur_gris+1}')
+            # Si le contour est une couleur de découpe, le rendre transparent
+            stroke_value = style.get('stroke', None)
+            if stroke_value and stroke_value.lower() != 'none':
+                stroke_hex = stroke_value.lstrip('#').lower()
+                if stroke_hex in cutting_colors:
+                    element.style['stroke-opacity'] = '0'
+            if couche is not None:
+                # couche.append(element)
+                couche.insert(compteur_gris, element)
+            else:
+                self.document.getroot().insert(compteur_gris, element)
+            compteur_gris += 1
+
+        self.ListeDeGris = []
+                
     def remove_unmanaged_colors(self):
         """Supprime les éléments dont la couleur de trait n'est pas gérée par la découpeuse laser"""
         if not self.SupprimerCouleursNonGerees:
@@ -1369,16 +1440,20 @@ class OptimLaser(inkex.EffectExtension):
                 path = element.path.to_non_shorthand()
 
                 if len(path) > 0:
+                    nb_Z = sum(1 for seg in path if seg.letter == 'Z')
+                    val_Z=1
                     segments = iter(path)
                     segmentPrev = next(segments)
                     Premier = segmentPrev
+                    
                     for segment in segments:
                         if segment.letter != 'Z':
                             debut = segmentPrev.end_point(None, None)
                             fin = segment.end_point(None, None)
                             segment_path = inkex.Path([inkex.paths.Move(*debut)] + [segment])
                             segmentPrev = segment
-                        else:
+                        # Ferme le chemin s'il ne l'est pas uniquement le dernier chemin d'un path multiple    
+                        elif val_Z==nb_Z: # uniquement le dernier Z du path
                             if segmentPrev.letter=='C':
                                 debut = (round(segmentPrev.x4, 6), round(segmentPrev.y4, 6))
                             elif segmentPrev.letter=='Q':
@@ -1387,7 +1462,8 @@ class OptimLaser(inkex.EffectExtension):
                                 debut = (round(segmentPrev.x, 6), round(segmentPrev.y, 6))
                             fin = (round(Premier.x, 6), round(Premier.y, 6))
                             segment_path = inkex.Path([inkex.paths.Move(*debut)] + [inkex.paths.Line(*fin)])
-
+                            segmentPrev = segment
+                            
                         if debut != fin:
                             self.numeroChemin += 1
                             new_element = inkex.PathElement(
@@ -2308,11 +2384,11 @@ class OptimLaser(inkex.EffectExtension):
         return False
     
     def _run_optimization(self):
-        #% Sauvegarde du fichier actuel avant optimisation
+        # % Sauvegarde du fichier actuel avant optimisation
         # Rafraîchir la fenêtre de progression
         self._update_progress_window(_("Initialisation..."))
         
-        # Garder une copie du contenu original pour pouvoir annuler
+        # % Garder une copie du contenu original pour pouvoir annuler
         try:
             current_file_name = self.document_path()
             with open(current_file_name, 'rb') as f:
@@ -2327,6 +2403,10 @@ class OptimLaser(inkex.EffectExtension):
             messagebox.showwarning(_('Attention !'), _('Vous devez enregistrer le fichier puis relancer l\'extension.'))
             return
         
+        # % Sauvegarder les éléments gris
+        self._update_progress_window(_("Sauvegarde des éléments gris..."))
+        self.save_gray_elements()
+
         # % Appliquer la transformation d'un groupe à chacun de ses éléments enfants
         self._update_progress_window(_("Dégroupement et transformation des éléments..."))
         self.ungroup_and_apply_transform_to_children()
@@ -2383,6 +2463,10 @@ class OptimLaser(inkex.EffectExtension):
                         stats['num_paths'], stats['improvement'], minutes, seconds)
                 )
         
+        # % Remettre les éléments gris
+        self._update_progress_window(_("Restauration des éléments gris..."))
+        self.restore_gray_elements()
+                
         # % Création du fichier de découpe
         # Rafraîchir la fenêtre de progression
         self._update_progress_window(_("Création du fichier de découpe..."))  
