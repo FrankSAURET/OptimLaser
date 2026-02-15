@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension translationdomain="OptimLaser" xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+    <name>Optimisation pour découpe laser</name>
+    <id>fr.sauret.optimlaser</id>
+    
+  <effect implements-custom-gui="true" show-stderr="true">
+        <effects-menu>
+            <submenu name="Découpe Laser"/>
+        </effects-menu>
+  </effect>
+    
+    <script>
+        <command location="inx" interpreter="python">OptimLaser.py</command>
+    </script>
+</inkscape-extension>
+
