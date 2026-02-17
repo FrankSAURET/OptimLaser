@@ -4,44 +4,49 @@
   "URL": "https://github.com/FrankSAURET",
   "updated": "2026-02-16",
   "extensions": [
-    {   "name": "OptimLaser",
-        "short_description": "Optimise les dessins SVG pour la découpe laser dans Inkscape, en supprimant les doublons et en améliorant les tracés.",
-        "subject": "découpe laser",
-        "author": "Frank SAURET",
-        "version": "2026.1",
-        "download": ["OptimLaser/"],
-        "default_install_dir": "FrankSAURET",
-        "compatibility": ["Inkscape >= 1.2.0"]
+    {
+      "name": "OptimLaser",
+      "short_description": "Optimise les dessins SVG pour la découpe laser dans Inkscape, en supprimant les doublons et en améliorant les tracés.",
+      "subject": "découpe laser",
+      "author": "Frank SAURET",
+      "version": "2026.1",
+      "download": ["OptimLaser/"],
+      "default_install_dir": "FrankSAURET",
+      "compatibility": ["Inkscape >= 1.2.0"],
+      "repos": "https://github.com/FrankSAURET/OptimLaser"
     },
     {
-        "name": "Tableau",
-        "short_description": "Dessine un tableau avec des coins arrondis.",
-        "subject": "découpe laser",
-        "author": "Frank SAURET",
-        "version": "2020.2",
-        "download": ["Tableau/"],
-        "default_install_dir": "FrankSAURET",
-        "compatibility": ["Inkscape >= 1.2.0"]
+      "name": "Tableau",
+      "short_description": "Dessine un tableau avec des coins arrondis.",
+      "subject": "découpe laser",
+      "author": "Frank SAURET",
+      "version": "2020.2",
+      "download": ["Tableau/"],
+      "default_install_dir": "FrankSAURET",
+      "compatibility": ["Inkscape >= 1.2.0"],
+      "repos": "https://github.com/FrankSAURET/Tableau"
     },
     {
-        "name": "removeDuplicateLines",
-        "short_description": "Supprime les segments de ligne dupliqués avec une option de tolérance pour détecter les segments comme identiques.",
-        "subject": "découpe laser",
-        "author": "Ellen Wasbø",
-        "version": "2026.1",
-        "download": ["removeDuplicateLines/"],
-        "default_install_dir": "FrankSAURET",
-        "compatibility": ["Inkscape >= 1.2.0"]
+      "name": "removeDuplicateLines",
+      "short_description": "Supprime les segments de ligne dupliqués avec une option de tolérance pour détecter les segments comme identiques.",
+      "subject": "découpe laser",
+      "author": "Ellen Wasbø",
+      "version": "2026.1",
+      "download": ["removeDuplicateLines/"],
+      "default_install_dir": "FrankSAURET",
+      "compatibility": ["Inkscape >= 1.2.0"],
+      "repos": "https://github.com/FrankSAURET/removeDuplicateLines"
     },
     {
-        "name": "Jointure_rapide",
-        "short_description": "Extension pour créer rapidement des jointures pour la découpe laser.",
-        "subject": "découpe laser",
-        "author": "Jarrett Rainimo",
-        "version": "2024.3",
-        "download": ["Jointure_rapide/"],
-        "default_install_dir": "FrankSAURET",
-        "compatibility": ["Inkscape >= 1.2.0"]
+      "name": "Jointure_rapide",
+      "short_description": "Extension pour créer rapidement des jointures pour la découpe laser.",
+      "subject": "découpe laser",
+      "author": "Jarrett Rainimo",
+      "version": "2024.3",
+      "download": ["Jointure_rapide/"],
+      "default_install_dir": "FrankSAURET",
+      "compatibility": ["Inkscape >= 1.2.0"],
+      "repos": "https://github.com/FrankSAURET/Jointure_rapide"
     },
     {
       "name": "Engrenages",
@@ -51,7 +56,8 @@
       "version": "2025.2",
       "download": ["Engrenages/"],
       "default_install_dir": "FrankSAURET",
-      "compatibility": ["Inkscape >= 1.2.0"]
+      "compatibility": ["Inkscape >= 1.2.0"],
+      "repos": "https://github.com/FrankSAURET/Engrenages"
     },
     {
       "name": "boite_brique",
@@ -61,10 +67,8 @@
       "version": "2024.2",
       "download": ["boite_brique/"],
       "default_install_dir": "FrankSAURET",
-      "compatibility": ["Inkscape >= 1.2.0"]
-    }    
-
+      "compatibility": ["Inkscape >= 1.2.0"],
+      "repos": "https://github.com/FrankSAURET/boite_brique"
+    }
   ]
 }
-
-
