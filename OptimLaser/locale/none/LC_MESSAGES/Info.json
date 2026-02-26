@@ -1,0 +1,9 @@
+{
+  "type": "InkScape extension",
+  "name": "Optimisation pour découpe laser",
+  "short_description": "Optimise les dessins SVG pour la découpe laser dans Inkscape, en supprimant les doublons et en améliorant les tracés.",
+  "author": "Frank SAURET",
+  "version": "2026.1",
+  "download": ["OptimLaser/"],
+  "repos": "https://github.com/FrankSAURET/OptimLaser"
+}

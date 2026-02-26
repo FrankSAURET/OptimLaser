@@ -1,0 +1,10 @@
+{
+  "type": "InkScape extension",
+  "name": "Optimization for laser cutting",
+  "short_description": "Optimizes SVG drawings for laser cutting in Inkscape by removing duplicates and improving paths.",
+  "author": "Frank SAURET",
+  "version": "2026.1",
+  "download": ["OptimLaser/"],
+  "repos": "https://github.com/FrankSAURET/OptimLaser"
+}
+ 
