@@ -31,11 +31,16 @@ try:
 except Exception:
     def _(msg): return msg
 
-# Importer la version
+# Extraction dynamique de la version depuis Info.json
+import json
+import os
+info_path = os.path.join(os.path.dirname(__file__), 'Info.json')
 try:
-    from optimlaser import __version__
-except ImportError:
-    __version__ = "2026.1"
+    with open(info_path, 'r', encoding='utf-8') as f:
+        info = json.load(f)
+        __version__ = info.get('version', 'unknown')
+except Exception:
+    __version__ = 'unknown'
 
 # Ajouter le chemin des modules
 sys.path.insert(0, os.path.dirname(__file__))

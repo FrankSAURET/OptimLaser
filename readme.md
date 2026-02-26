@@ -56,7 +56,10 @@
 
 <span style="color:#045D97">🔁 Redémarrez Inkscape après la copie.</span>
 
----
+<div style="background-color:#E6F4EA; border-left:4px solid #1A7F37; padding:8px 12px; border-radius:4px; margin:8px 0;">
+<span style="color:#045D97">💡Elle peut être installée et mise à jour avec l'extension Màj : <b> extensions > Mise à jour des extensions de Frank SAURET...</b>.
+
+Màj est téléchargeable  ici : https://github.com/FrankSAURET/Maj</span></div>
 
 ### <span style="color:#045D97">🚀 Lancement</span>
 
