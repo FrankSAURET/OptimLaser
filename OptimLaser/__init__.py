@@ -5,7 +5,7 @@ Package principal contenant les modules de géométrie, optimisation et interfac
 Version 2026.1 - Refactorisation complète avec architecture modulaire.
 """
 
-__version__ = "2026.1"
+__version__ = "2026.2"
 __author__ = "Frank SAURET & GitHub Copilot"
 __license__ = "GPLv2"
 

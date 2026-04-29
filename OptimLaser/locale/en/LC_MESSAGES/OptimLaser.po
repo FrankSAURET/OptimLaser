@@ -256,8 +256,8 @@ msgid "Rapide, solution de bonne qualité"
 msgstr "Fast, good quality solution"
 
 #: ui/gui.py:519
-msgid "Regroupe par bandes (lignes ou colonnes) de taille définie"
-msgstr "Groups by strips (rows or columns) of defined size"
+msgid "Regroupe par bandes (lignes ou colonnes) de taille définie. Idéal pour de grandes surfaces ou des pièces réparties, limite les grands déplacements à vide globaux."
+msgstr "Groups into strips (rows or columns) of a defined size. Ideal for large areas or spread-out rooms, limits large overall empty movements."
 
 #: ui/gui.py:620
 msgid "Sauvegarder sous Découpe"

@@ -1875,13 +1875,86 @@ class OptimLaser(inkex.EffectExtension):
                 current = end
             
             elif letter == 'A':
-                end = (float(cmd.x), float(cmd.y))
-                # Approximation linéaire pour les arcs (suffisant pour la comparaison)
+                x1, y1 = current
+                rx_a = abs(float(cmd.rx))
+                ry_a = abs(float(cmd.ry))
+                phi_deg = float(cmd.x_axis_rotation)
+                fa = int(cmd.large_arc)
+                fs = int(cmd.sweep)
+                x2, y2 = float(cmd.x), float(cmd.y)
+                end = (x2, y2)
+
+                # Dégénérescences : rayon nul → ligne droite
+                if rx_a < 1e-10 or ry_a < 1e-10 or (abs(x1 - x2) < 1e-10 and abs(y1 - y2) < 1e-10):
+                    for i in range(num_samples + 1):
+                        t = i / num_samples
+                        points.append((x1 + t * (x2 - x1), y1 + t * (y2 - y1)))
+                    current = end
+                    continue
+
+                # Conversion endpoint → paramétisation centrée (spec SVG §B.2.4)
+                phi_rad = math.radians(phi_deg)
+                cos_phi = math.cos(phi_rad)
+                sin_phi = math.sin(phi_rad)
+
+                dx2 = (x1 - x2) / 2.0
+                dy2 = (y1 - y2) / 2.0
+                x1p = cos_phi * dx2 + sin_phi * dy2
+                y1p = -sin_phi * dx2 + cos_phi * dy2
+
+                # Correction des rayons trop petits
+                lam = (x1p * x1p) / (rx_a * rx_a) + (y1p * y1p) / (ry_a * ry_a)
+                if lam > 1.0:
+                    sq_lam = math.sqrt(lam)
+                    rx_a *= sq_lam
+                    ry_a *= sq_lam
+
+                rx2 = rx_a * rx_a
+                ry2 = ry_a * ry_a
+                x1p2 = x1p * x1p
+                y1p2 = y1p * y1p
+
+                num_c = max(0.0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2)
+                den_c = rx2 * y1p2 + ry2 * x1p2
+                sq_c = math.sqrt(num_c / den_c) if den_c > 1e-10 else 0.0
+                if fa == fs:
+                    sq_c = -sq_c
+
+                cxp = sq_c * rx_a * y1p / ry_a
+                cyp = -sq_c * ry_a * x1p / rx_a
+                cx = cos_phi * cxp - sin_phi * cyp + (x1 + x2) / 2.0
+                cy = sin_phi * cxp + cos_phi * cyp + (y1 + y2) / 2.0
+
+                def _vec_angle(ux, uy, vx, vy):
+                    cross = ux * vy - uy * vx
+                    dot = ux * vx + uy * vy
+                    lu = math.sqrt(ux * ux + uy * uy)
+                    lv = math.sqrt(vx * vx + vy * vy)
+                    if lu < 1e-10 or lv < 1e-10:
+                        return 0.0
+                    a = math.acos(max(-1.0, min(1.0, dot / (lu * lv))))
+                    return -a if cross < 0 else a
+
+                ux = (x1p - cxp) / rx_a
+                uy = (y1p - cyp) / ry_a
+                vx = (-x1p - cxp) / rx_a
+                vy = (-y1p - cyp) / ry_a
+
+                theta1 = _vec_angle(1.0, 0.0, ux, uy)
+                dtheta = _vec_angle(ux, uy, vx, vy)
+                if fs == 0 and dtheta > 0:
+                    dtheta -= 2.0 * math.pi
+                elif fs == 1 and dtheta < 0:
+                    dtheta += 2.0 * math.pi
+
                 for i in range(num_samples + 1):
                     t = i / num_samples
-                    x = current[0] + t * (end[0] - current[0])
-                    y = current[1] + t * (end[1] - current[1])
-                    points.append((x, y))
+                    theta = theta1 + t * dtheta
+                    cos_t = math.cos(theta)
+                    sin_t = math.sin(theta)
+                    px = cx + rx_a * cos_phi * cos_t - ry_a * sin_phi * sin_t
+                    py = cy + rx_a * sin_phi * cos_t + ry_a * cos_phi * sin_t
+                    points.append((px, py))
                 current = end
             
             elif letter == 'C':

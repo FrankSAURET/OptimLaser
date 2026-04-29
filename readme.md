@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-2026.1-045D97?style=for-the-badge&logo=inkscape&logoColor=white" alt="Version"/>
+  <img src="https://img.shields.io/badge/Version-2026.2-045D97?style=for-the-badge&logo=inkscape&logoColor=white" alt="Version"/>
   <img src="https://img.shields.io/badge/Inkscape-1.2_→_1.4.2-E0E0E0?style=for-the-badge&logo=inkscape&logoColor=black" alt="Inkscape"/>
   <img src="https://img.shields.io/badge/Licence-GPLv2-green?style=for-the-badge" alt="License"/>
   <img src="https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
@@ -27,7 +27,6 @@
 
 <span style="color:#045D97">**OptimLaser** est une extension Inkscape qui optimise un dessin vectoriel pour la découpe laser.</span>
 
-<span style="color:#045D97">🔄 Le code a été **largement réécrit** dans cette version 2026.1 avec une architecture modulaire complète (géométrie, optimisation, interface). L'extension dispose désormais d'une **nouvelle interface graphique dynamique** (Tkinter) qui remplace l'ancien panneau statique et permet un paramétrage avancé en temps réel.</span>
 
 <span style="color:#045D97">**✨ Fonctionnalités principales :**</span>
 
@@ -155,7 +154,7 @@ msgfmt OptimLaser.po -o OptimLaser.mo
 
 **OptimLaser** is an Inkscape extension that optimizes vector drawings for laser cutting.
 
-🔄 The code has been **extensively rewritten** in version 2026.1 with a full modular architecture (geometry, optimization, UI). The extension now features a **new dynamic graphical interface** (Tkinter) replacing the old static panel, allowing advanced real-time configuration.
+
 
 **✨ Key features:**
 

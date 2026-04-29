@@ -25,7 +25,7 @@ except Exception:
 try:
     from optimlaser import __version__
 except ImportError:
-    __version__ = "2026.1"
+    __version__ = "2026.2"
 
 # Configurer le locale français
 try:
@@ -64,7 +64,7 @@ class OptimLaserGUI:
         self.enable_partial_overlap = tk.BooleanVar(value=True)
 
         self.enable_global_optimization = tk.BooleanVar(value=True)
-        self.optimization_strategy = tk.StringVar(value="Zonage")
+        self.optimization_strategy = tk.StringVar(value="Optimisation locale")
         self.max_iterations = tk.IntVar(value=50)
         self.zonage_direction = tk.StringVar(value="colonnes")
         self.zonage_size_mm = tk.DoubleVar(value=10.0)
@@ -343,6 +343,8 @@ class OptimLaserGUI:
         # Frame principal avec padding
         main_frame = ttk.Frame(self.master, padding="10")
         main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        # Augmenter la taille de la fenêtre principale pour accueillir le texte supplémentaire
+        self.master.geometry("760x550")  # largeur x hauteur (valeurs augmentées)
         
         # Titre
         title_label = ttk.Label(
@@ -355,6 +357,7 @@ class OptimLaserGUI:
         # Notebook pour les onglets
         notebook = ttk.Notebook(main_frame)
         notebook.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S))
+        #notebook.config(height=300)  # hauteur augmentée pour l'onglet principal
         
         # Onglet 1: Paramètres
         self._create_duplicate_tab(notebook)
@@ -516,16 +519,18 @@ class OptimLaserGUI:
         strategy_text = (
             "• " + _("Plus proche voisin") + " : " + _("Rapide, solution de bonne qualité") + "\n"
             "• " + _("Optimisation locale") + " : " + _("Optimisation par échanges, meilleure qualité") + "\n"
-            "• " + _("Zonage") + " : " + _("Regroupe par bandes (lignes ou colonnes) de taille définie")
+            "• " + _("Zonage") + " : " + _("Regroupe par bandes (lignes ou colonnes) de taille définie. Idéal pour de grandes surfaces ou des pièces réparties, limite les grands déplacements à vide globaux.")
         )
         
         strategy_info = ttk.Label(
             optimization_frame,
             text=strategy_text,
             justify=tk.LEFT,
-            foreground=self.fgLight_color
+            foreground=self.fgLight_color,
+            anchor="w",
+            wraplength=700  
         )
-        strategy_info.grid(row=3, column=0, columnspan=4, sticky=(tk.W, tk.E), pady=(15, 0))
+        strategy_info.grid(row=3, column=0, columnspan=4, sticky=(tk.W, tk.E), pady=(15, 0), ipady=00)
         
         optimization_frame.columnconfigure(1, weight=1)
         optimization_frame.columnconfigure(3, weight=1)
