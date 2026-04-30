@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-2026.2-045D97?style=for-the-badge&logo=inkscape&logoColor=white" alt="Version"/>
+  <img src="https://img.shields.io/badge/Version-2026.3-045D97?style=for-the-badge&logo=inkscape&logoColor=white" alt="Version"/>
   <img src="https://img.shields.io/badge/Inkscape-1.2_→_1.4.2-E0E0E0?style=for-the-badge&logo=inkscape&logoColor=black" alt="Inkscape"/>
   <img src="https://img.shields.io/badge/Licence-GPLv2-green?style=for-the-badge" alt="License"/>
   <img src="https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
