@@ -1444,21 +1444,28 @@ class OptimLaser(inkex.EffectExtension):
 
                 path = element.path.to_non_shorthand()
 
+
                 if len(path) > 0:
-                    nb_Z = sum(1 for seg in path if seg.letter == 'Z')
-                    val_Z=1
                     segments = iter(path)
                     segmentPrev = next(segments)
                     Premier = segmentPrev
-                    
+                    debut = None
+                    fin = None
+
                     for segment in segments:
-                        if segment.letter != 'Z':
+                        if segment.letter == 'M':
+                            # Début d'un nouveau sous-chemin : mettre à jour le point de départ
+                            Premier = segment
+                            segmentPrev = segment
+                            continue  # Pas de segment de dessin pour M
+                        elif segment.letter != 'Z':
                             debut = segmentPrev.end_point(None, None)
                             fin = segment.end_point(None, None)
                             segment_path = inkex.Path([inkex.paths.Move(*debut)] + [segment])
                             segmentPrev = segment
-                        # Ferme le chemin s'il ne l'est pas uniquement le dernier chemin d'un path multiple    
-                        elif val_Z==nb_Z: # uniquement le dernier Z du path
+                        else:  # Z : ferme chaque sous-chemin vers son point de départ
+                                            
+                            
                             if segmentPrev.letter=='C':
                                 debut = (round(segmentPrev.x4, 6), round(segmentPrev.y4, 6))
                             elif segmentPrev.letter=='Q':
@@ -1741,7 +1748,7 @@ class OptimLaser(inkex.EffectExtension):
                             overlap_start = max(p1_start_proj, p2_start_proj)
                             overlap_end = min(p1_end_proj, p2_end_proj)
                             
-                            if overlap_start <= overlap_end:  # Les segments se chevauchent
+                            if overlap_end - overlap_start > 1e-6:  # Les segments se chevauchent (exclut les contacts simples en un point)
                                 # Ajouter au graphe d'adjacence
                                 if path2['id'] not in overlap_graph:
                                     overlap_graph[path2['id']] = {'path': path2, 'overlaps': set()}

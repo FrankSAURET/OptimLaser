@@ -1,3 +1,5 @@
+# Ignore specific files
+3pattes.svg
 # Ignore all zip files
 *.zip
 
