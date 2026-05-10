@@ -25,7 +25,7 @@ except Exception:
 try:
     from optimlaser import __version__
 except ImportError:
-    __version__ = "2026.2"
+    __version__ = "2026.3"
 
 # Configurer le locale français
 try:

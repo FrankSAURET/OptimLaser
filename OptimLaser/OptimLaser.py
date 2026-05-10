@@ -1542,6 +1542,7 @@ class OptimLaser(inkex.EffectExtension):
 
                 path = element.path.to_non_shorthand()
 
+
                 if len(path) > 0:
                     segments = iter(path)
                     segmentPrev = next(segments)
@@ -1879,7 +1880,7 @@ class OptimLaser(inkex.EffectExtension):
                             overlap_start = max(p1_start_proj, p2_start_proj)
                             overlap_end = min(p1_end_proj, p2_end_proj)
                             
-                            if overlap_start <= overlap_end:  # Les segments se chevauchent
+                            if overlap_end - overlap_start > 1e-6:  # Les segments se chevauchent (exclut les contacts simples en un point)
                                 # Ajouter au graphe d'adjacence
                                 if path2['id'] not in overlap_graph:
                                     overlap_graph[path2['id']] = {'path': path2, 'overlaps': set()}
