@@ -113,6 +113,7 @@ class OptimLaser(inkex.EffectExtension):
             self.idle_speed = params['idle_speed']
             self.SupprimerCouleursNonGerees = params.get('SupprimerCouleursNonGerees', True)
             self.SauvegarderSousDecoupe = params.get('SauvegarderSousDecoupe', True)
+            self.remove_duplicates_all_colors = params.get('remove_duplicates_all_colors', False)
             
             # Lancer l'optimisation
             self._run_optimization()
@@ -132,6 +133,9 @@ class OptimLaser(inkex.EffectExtension):
         """
         self.ListeDeGris = []
         for element in self.svg.descendants():
+            # Ignorer les éléments à l'intérieur de <defs>, <marker>, <pattern>, etc.
+            if self._is_in_defs(element):
+                continue
             couche = self.find_layer(element)
             style = element.style
             style_save = element.style
@@ -211,6 +215,9 @@ class OptimLaser(inkex.EffectExtension):
 
         # Suppression des éléments avec couleur de trait non gérée
         for element in list(self.svg.descendants()):
+            # Ne pas toucher aux éléments dans <defs>/<marker>/<pattern>/etc.
+            if self._is_in_defs(element):
+                continue
             if hasattr(element, 'style') and 'stroke' in element.style:
                 stroke_color = element.style.get('stroke', '#000000').lower()
                 if stroke_color.startswith('#'):
@@ -264,9 +271,9 @@ class OptimLaser(inkex.EffectExtension):
         except Exception:
             pass
         
-        # --- 2. Collecter tous les PathElement du SVG ---
+        # --- 2. Collecter tous les PathElement du SVG (en excluant ceux dans <defs>) ---
         all_path_elems = [el for el in self.svg.xpath('//svg:path')
-                          if isinstance(el, PathElement)]
+                          if isinstance(el, PathElement) and not self._is_in_defs(el)]
         if not all_path_elems:
             return {'improvement': 0.0, 'initial_idle': 0.0,
                     'final_idle': 0.0, 'estimated_time_s': 0.0, 'num_paths': 0}
@@ -688,7 +695,8 @@ class OptimLaser(inkex.EffectExtension):
         Affiche un tableau debug : ID chemin | Couleur chemin | coordonnée de début | coordonnée de fin
         Chaque chemin 2 fois (début-fin et fin-début)
         """
-        path_elements = [el for el in self.svg.descendants() if isinstance(el, inkex.PathElement)]
+        path_elements = [el for el in self.svg.descendants()
+                         if isinstance(el, inkex.PathElement) and not self._is_in_defs(el)]
         if not path_elements:
             return
 
@@ -1266,7 +1274,7 @@ class OptimLaser(inkex.EffectExtension):
                 self.save(output_file)
             self.document = inkex.load_svg(current_file_name)
             self.kill_other_inkscape_running()
-            
+
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 subprocess.Popen(["inkscape", new_file_name])
@@ -1303,6 +1311,74 @@ class OptimLaser(inkex.EffectExtension):
                     return element
             element = element.getparent()
         return None
+
+    # Tags d'éléments non-rendus directement : leurs descendants ne doivent pas être modifiés
+    # par l'optimisation (sinon Inkscape peut crasher en chargeant le SVG, ex. lors de la création
+    # de l'image preview d'un marker vidé de ses paths internes).
+    _NON_RENDERED_TAGS = frozenset([
+        inkex.addNS('defs', 'svg'),
+        inkex.addNS('pattern', 'svg'),
+        inkex.addNS('marker', 'svg'),
+        inkex.addNS('symbol', 'svg'),
+        inkex.addNS('clipPath', 'svg'),
+        inkex.addNS('mask', 'svg'),
+    ])
+
+    def _is_in_defs(self, element):
+        """Retourne True si l'élément est descendant d'un conteneur non-rendu directement
+        (<defs>, <pattern>, <marker>, <symbol>, <clipPath>, <mask>).
+
+        Important : sans ce filtre, l'extension vide les markers/patterns en décomposant
+        leurs paths internes, ce qui fait planter Inkscape lors du chargement du fichier découpe.
+        """
+        cur = element.getparent() if hasattr(element, 'getparent') else None
+        while cur is not None:
+            tag = getattr(cur, 'tag', None)
+            if tag in self._NON_RENDERED_TAGS:
+                return True
+            cur = cur.getparent() if hasattr(cur, 'getparent') else None
+        return False
+
+    def _transform_scale_factor(self, transform):
+        """Retourne le facteur d'échelle moyen d'un inkex.Transform.
+
+        Pour une matrice [a c e; b d f], le facteur est sqrt(|a*d - b*c|).
+        Sert à adapter stroke-width quand on applique le transform au path
+        (sinon l'épaisseur visuelle change).
+        """
+        if transform is None:
+            return 1.0
+        try:
+            a, b = float(transform.a), float(transform.b)
+            c, d = float(transform.c), float(transform.d)
+        except AttributeError:
+            try:
+                m = transform.matrix
+                a, c, e = m[0]
+                b, d, f = m[1]
+                a, b, c, d = float(a), float(b), float(c), float(d)
+            except Exception:
+                return 1.0
+        det = abs(a * d - b * c)
+        if det <= 0:
+            return 1.0
+        return math.sqrt(det)
+
+    def _scale_stroke_width(self, style, scale_factor):
+        """Multiplie stroke-width dans le style par scale_factor (in-place).
+        Ne fait rien si scale_factor ≈ 1 ou si stroke-width absent.
+        """
+        if abs(scale_factor - 1.0) < 1e-9:
+            return
+        sw = style.get('stroke-width', None)
+        if sw is None or sw == '':
+            return
+        try:
+            sw_val = float(str(sw).replace('px', '').strip())
+        except (ValueError, TypeError):
+            return
+        new_sw = sw_val * scale_factor
+        style['stroke-width'] = f'{new_sw:.8g}'
 
     def custom_to_path_element(self, element):
         """
@@ -1363,7 +1439,8 @@ class OptimLaser(inkex.EffectExtension):
         """Décompose les groupes et applique la transformation à leurs enfants"""
         Nouvelle_selection = []
         elements_to_process = [elem for elem in self.svg.descendants()
-                            if not isinstance(elem, inkex.TextElement)]
+                            if not isinstance(elem, inkex.TextElement)
+                            and not self._is_in_defs(elem)]
 
         def recursive_ungroup(element):
             """Décompose les groupes et applique la transformation à leurs enfants"""
@@ -1373,6 +1450,9 @@ class OptimLaser(inkex.EffectExtension):
                     for grandchild in child.getchildren():
                         if hasattr(grandchild, 'to_path_element'):
                             grandchild = self.custom_to_path_element(grandchild)
+                            # Calculer les scale factors AVANT d'appliquer les transforms (sinon ils sont déjà absorbés)
+                            sf_gc = self._transform_scale_factor(grandchild.transform)
+                            sf_c = self._transform_scale_factor(child.transform)
                             grandchild.path = grandchild.path.transform(grandchild.transform)
                             grandchild.path = grandchild.path.transform(child.transform)
                             grandchild.attrib.pop('transform', None)
@@ -1381,6 +1461,8 @@ class OptimLaser(inkex.EffectExtension):
                             for key, value in parent_style.items():
                                 if key not in child_style or child_style[key] is None:
                                     child_style[key] = value
+                            # Adapter stroke-width pour préserver l'épaisseur visuelle
+                            self._scale_stroke_width(child_style, sf_gc * sf_c)
                             grandchild.attrib['style'] = str(child_style)
                         element.append(grandchild)
                         children_to_process.append(grandchild)
@@ -1404,14 +1486,21 @@ class OptimLaser(inkex.EffectExtension):
                 elements_to_process.extend(recursive_ungroup(current_element))
 
         for element in self.svg.descendants():
+            if self._is_in_defs(element):
+                continue
             if isinstance(element, (inkex.Circle, inkex.Ellipse, inkex.Rectangle, inkex.Line, inkex.Polyline, inkex.Polygon)):
                 if hasattr(element, 'to_path_element'):
                     parent = element.getparent()
                     new_path = self.custom_to_path_element(element)
                     if 'transform' in element.attrib:
                         transform = inkex.Transform(element.get('transform'))
+                        sf = self._transform_scale_factor(transform)
                         new_path.path = new_path.path.transform(transform)
                         new_path.attrib.pop('transform', None)
+                        # Adapter stroke-width pour préserver l'épaisseur visuelle
+                        new_style = inkex.Style(new_path.attrib.get('style', ''))
+                        self._scale_stroke_width(new_style, sf)
+                        new_path.attrib['style'] = str(new_style)
                     if parent is not None:
                         parent.replace(element, new_path)
                         Nouvelle_selection.append(new_path)
@@ -1424,7 +1513,12 @@ class OptimLaser(inkex.EffectExtension):
             # Ignorer explicitement les TextElements
             if isinstance(element, inkex.TextElement):
                 continue
-            
+
+            # Ne pas décomposer les paths à l'intérieur de <defs>/<marker>/<pattern>/etc.
+            # (sinon Inkscape crash en chargeant le fichier découpe — markers vidés).
+            if self._is_in_defs(element):
+                continue
+
             if (isinstance(element, (inkex.PathElement, inkex.Circle, inkex.Ellipse,
                                 inkex.Rectangle, inkex.Line, inkex.Polyline, inkex.Polygon))
                 and not any('font' in key.lower() for key in element.style.keys())):
@@ -1438,6 +1532,10 @@ class OptimLaser(inkex.EffectExtension):
                 if isinstance(element, inkex.PathElement) and 'transform' in element.attrib:
                     path = element.path
                     transform = inkex.Transform(element.get('transform'))
+                    # Adapter stroke-width au scale du transform avant absorption
+                    sf = self._transform_scale_factor(transform)
+                    self._scale_stroke_width(style, sf)
+                    element.style = style
                     path = path.transform(transform)
                     element.attrib.pop('transform', None)
                     element.path = path
@@ -1445,31 +1543,42 @@ class OptimLaser(inkex.EffectExtension):
                 path = element.path.to_non_shorthand()
 
                 if len(path) > 0:
-                    nb_Z = sum(1 for seg in path if seg.letter == 'Z')
-                    val_Z=1
                     segments = iter(path)
                     segmentPrev = next(segments)
+                    # Premier point du sous-chemin courant (mis à jour à chaque commande M)
                     Premier = segmentPrev
-                    
+
                     for segment in segments:
-                        if segment.letter != 'Z':
-                            debut = segmentPrev.end_point(None, None)
-                            fin = segment.end_point(None, None)
-                            segment_path = inkex.Path([inkex.paths.Move(*debut)] + [segment])
+                        debut = None
+                        fin = None
+                        segment_path = None
+
+                        if segment.letter == 'M':
+                            # Nouveau sous-chemin : pas de segment à dessiner, on met juste à jour
+                            # le point de départ pour le prochain Z éventuel
+                            Premier = segment
                             segmentPrev = segment
-                        # Ferme le chemin s'il ne l'est pas uniquement le dernier chemin d'un path multiple    
-                        elif val_Z==nb_Z: # uniquement le dernier Z du path
-                            if segmentPrev.letter=='C':
+                            continue
+                        elif segment.letter == 'Z':
+                            # Fermeture : générer le segment du dernier point au début du sous-chemin (Premier)
+                            # quel que soit le nombre de Z (corrige le bug où val_Z n'était jamais incrémenté)
+                            if segmentPrev.letter == 'C':
                                 debut = (round(segmentPrev.x4, 6), round(segmentPrev.y4, 6))
-                            elif segmentPrev.letter=='Q':
+                            elif segmentPrev.letter == 'Q':
                                 debut = (round(segmentPrev.x3, 6), round(segmentPrev.y3, 6))
                             else:
                                 debut = (round(segmentPrev.x, 6), round(segmentPrev.y, 6))
                             fin = (round(Premier.x, 6), round(Premier.y, 6))
                             segment_path = inkex.Path([inkex.paths.Move(*debut)] + [inkex.paths.Line(*fin)])
                             segmentPrev = segment
-                            
-                        if debut != fin:
+                        else:
+                            # Segment de dessin (L, A, C, Q)
+                            debut = segmentPrev.end_point(None, None)
+                            fin = segment.end_point(None, None)
+                            segment_path = inkex.Path([inkex.paths.Move(*debut)] + [segment])
+                            segmentPrev = segment
+
+                        if segment_path is not None and debut != fin:
                             self.numeroChemin += 1
                             new_element = inkex.PathElement(
                                 id=f"chemin{self.numeroChemin}",
@@ -1560,6 +1669,9 @@ class OptimLaser(inkex.EffectExtension):
         for element in self.svg.descendants():
             if not isinstance(element, inkex.PathElement):
                 continue
+            # Ne pas comparer les paths internes des markers/patterns/etc.
+            if self._is_in_defs(element):
+                continue
             # Convertir en chemin absolu pour gérer les commandes relatives (minuscules)
             abs_path = element.path.to_absolute()
             path = list(abs_path)
@@ -1646,13 +1758,37 @@ class OptimLaser(inkex.EffectExtension):
                     'orig_path': abs_path
                 })
         
-        paths_by_color = {}
-        for path in path_elements:
-            color = path['color']
-            if color not in paths_by_color:
-                paths_by_color[color] = []
-            paths_by_color[color].append(path)
-        
+        # Si l'option est activée, regrouper tous les paths (limités aux couleurs de découpe)
+        # sous une "couleur fictive" pour détecter les doublons inter-couleurs.
+        # On unifie path['color'] dans le dict (les éléments SVG conservent leur vraie couleur dans leur style).
+        # Le premier chemin rencontré est conservé (cf. _process_overlapping_groups).
+        if getattr(self, 'remove_duplicates_all_colors', False):
+            cutting_colors = set()
+            json_path = os.path.join(os.path.dirname(__file__), 'OptimLaser.json')
+            try:
+                with open(json_path, 'r') as f:
+                    config = json.load(f)
+                    cutting_colors = {'#' + c.lower().lstrip('#') for c in config.get('colors', [])}
+            except Exception:
+                pass
+
+            filtered_paths = [
+                p for p in path_elements
+                if not cutting_colors or p['color'].lower() in cutting_colors
+            ]
+            # Unifier la couleur de détection pour autoriser la fusion inter-couleurs
+            # (sous-fonctions comme _build_curve_chains regroupent par 'color')
+            for p in filtered_paths:
+                p['color'] = '__all_colors__'
+            paths_by_color = {'__all_colors__': filtered_paths} if filtered_paths else {}
+        else:
+            paths_by_color = {}
+            for path in path_elements:
+                color = path['color']
+                if color not in paths_by_color:
+                    paths_by_color[color] = []
+                paths_by_color[color].append(path)
+
         to_remove = set()
         for color, paths in paths_by_color.items():
             # Séparer les chemins par type
@@ -1672,12 +1808,14 @@ class OptimLaser(inkex.EffectExtension):
         
         count_removed = 0
         for element in list(self.svg.descendants()):
+            if self._is_in_defs(element):
+                continue
             if isinstance(element, inkex.PathElement) and element.get('id') in to_remove:
                 parent = element.getparent()
                 if parent is not None:
                     parent.remove(element)
                     count_removed += 1
-        
+
         return count_removed > 0
     
     def _find_overlapping_straight_segments(self, segments, to_remove):
