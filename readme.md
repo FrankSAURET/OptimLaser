@@ -55,6 +55,20 @@
 
 <span style="color:#045D97">🔁 Redémarrez Inkscape après la copie.</span>
 
+### <span style="color:#045D97">🧪 Vérification des dépendances (Windows)</span>
+
+<span style="color:#045D97">OptimLaser utilise le Python intégré à Inkscape. Pour vérifier les dépendances de cet environnement, exécutez :</span>
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\verifier_dependances_inkscape.ps1
+```
+
+<span style="color:#045D97">Le script contrôle notamment <b>inkex</b>, <b>lxml</b> et <b>tkinter</b>.</span>
+
+<span style="color:#045D97">Si <b>tkinter</b> manque, OptimLaser démarre en mode sans interface (fallback) avec les derniers paramètres sauvegardés.</span>
+
+<span style="color:#045D97">Si <b>inkex</b> ou <b>lxml</b> manquent, réinstallez Inkscape avec son installation complète.</span>
+
 <div style="background-color:#E6F4EA; border-left:4px solid #1A7F37; padding:8px 12px; border-radius:4px; margin:8px 0;">
 <span style="color:#045D97">💡Elle peut être installée et mise à jour avec l'extension Màj : <b> extensions > Mise à jour des extensions de Frank SAURET...</b>.
 

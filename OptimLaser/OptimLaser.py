@@ -19,7 +19,6 @@ import platform
 import re
 from datetime import datetime
 import warnings
-from tkinter import messagebox
 import gettext
 import copy
 
@@ -49,12 +48,10 @@ try:
     # Tentative d'import en tant que package
     from geometry import Point, Segment, Arc, BezierCurve
     from duplicate_remover import DuplicateRemover
-    from ui.gui import show_gui
 except ImportError:
     # Fallback en imports absolus
     from geometry import Point, Segment, Arc, BezierCurve
     from duplicate_remover import DuplicateRemover
-    from ui.gui import show_gui
 
 class OptimLaser(inkex.EffectExtension):
 
@@ -89,34 +86,182 @@ class OptimLaser(inkex.EffectExtension):
             """Callback quand l'utilisateur clique sur Annuler"""
             sys.exit(0)
         
-        # Afficher la GUI et récupérer l'instance
-        result = show_gui(config_file=config_file, on_apply=on_apply, on_cancel=on_cancel)
-        if isinstance(result, tuple):
-            params_dict, self.gui_instance = result
-            params.update(params_dict)
+        # Afficher la GUI si disponible, sinon fallback sans interface.
+        try:
+            from ui.gui import show_gui
+        except Exception:
+            show_gui = None
+
+        if show_gui is not None:
+            result = show_gui(config_file=config_file, on_apply=on_apply, on_cancel=on_cancel)
+            if isinstance(result, tuple):
+                params_dict, self.gui_instance = result
+                params.update(params_dict)
+            else:
+                # Compatibilité avec l'ancien format
+                params.update(result)
+                self.gui_instance = None
         else:
-            # Compatibilité avec l'ancien format
-            params.update(result)
             self.gui_instance = None
+            self._show_tkinter_missing_warning()
+            params.update(self._load_params_from_config(config_file))
         
         if params:
-            # Utiliser les paramètres de la GUI
-            self.tolerance = params['tolerance']
-            self.enable_partial_overlap = params['enable_partial_overlap']
-            self.overlap_threshold = params['overlap_threshold']
-            self.enable_global_optimization = params['enable_global_optimization']
-            self.optimization_strategy = params['optimization_strategy']
-            self.max_iterations = params['max_iterations']
-            self.zonage_direction = params.get('zonage_direction', 'colonnes')
-            self.zonage_size_mm = params.get('zonage_size_mm', 10.0)
-            self.laser_speed = params['laser_speed']
-            self.idle_speed = params['idle_speed']
-            self.SupprimerCouleursNonGerees = params.get('SupprimerCouleursNonGerees', True)
-            self.SauvegarderSousDecoupe = params.get('SauvegarderSousDecoupe', True)
-            self.remove_duplicates_all_colors = params.get('remove_duplicates_all_colors', False)
+            self._apply_parameters(params)
             
             # Lancer l'optimisation
             self._run_optimization()
+
+    def _show_warning(self, message):
+        """Affiche un avertissement via Tkinter, popup natif ou stderr."""
+        try:
+            from tkinter import messagebox
+            messagebox.showwarning(_('Attention !'), message)
+        except Exception:
+            if self._show_native_warning(message):
+                return
+            try:
+                inkex.errormsg(message)
+            except Exception:
+                sys.stderr.write(message + "\n")
+
+    def _show_tkinter_missing_warning(self):
+        """Affiche l'aide tkinter manquant sans réessayer tkinter."""
+        message = self._get_tkinter_missing_message()
+        if self._show_native_warning(message):
+            return
+        try:
+            inkex.errormsg(message)
+        except Exception:
+            sys.stderr.write(message + "\n")
+
+    def _show_native_warning(self, message):
+        """Affiche un popup natif si Tkinter n'est pas disponible."""
+        title = _('Attention !')
+        system_name = platform.system()
+
+        try:
+            if system_name == 'Darwin':
+                apple_script = (
+                    'display dialog ' + json.dumps(message) +
+                    ' with title ' + json.dumps(title) +
+                    ' buttons {"OK"} default button "OK" with icon caution'
+                )
+                subprocess.run(
+                    ['osascript', '-e', apple_script],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                return True
+
+            if system_name == 'Linux':
+                popup_commands = [
+                    ['zenity', '--warning', '--title', title, '--text', message],
+                    ['kdialog', '--title', title, '--sorry', message],
+                    ['xmessage', '-center', message],
+                ]
+                for command in popup_commands:
+                    try:
+                        result = subprocess.run(command, check=False, capture_output=True, text=True)
+                        if result.returncode == 0:
+                            return True
+                    except FileNotFoundError:
+                        continue
+        except Exception:
+            return False
+
+        return False
+
+    def _get_tkinter_missing_message(self):
+        """Construit un message d'aide selon la plateforme si Tkinter manque."""
+        base_message = _(
+            "Tkinter n'est pas disponible dans le Python utilisé par Inkscape. "
+            "OptimLaser continue en mode sans interface avec les derniers paramètres sauvegardés."
+        )
+
+        system_name = platform.system()
+        if system_name == 'Darwin':
+            return _(
+                "{base}\n\n"
+                "Pour retrouver l'interface graphique sur macOS :\n"
+                "1. Installez Tcl/Tk : brew install tcl-tk\n"
+                "2. Installez Tkinter pour Python 3.12 : brew install python-tk@3.12\n"
+                "3. Si vous forcez un autre Python dans Inkscape, adaptez la version : python-tk@3.13, python-tk@3.14, etc.\n"
+                "4. Redémarrez Inkscape."
+            ).format(base=base_message)
+
+        if system_name == 'Linux':
+            return _(
+                "{base}\n\n"
+                "Pour retrouver l'interface graphique sous Linux, installez Tk selon votre distribution :\n"
+                "- Debian / Ubuntu : sudo apt install python3-tk\n"
+                "- Fedora : sudo dnf install python3-tkinter\n"
+                "- Arch Linux : sudo pacman -S tk\n"
+                "Puis redémarrez Inkscape."
+            ).format(base=base_message)
+
+        return base_message
+
+    def _load_params_from_config(self, config_file):
+        """Charge les paramètres depuis OptimLaser.json pour le mode sans GUI."""
+        defaults = {
+            'tolerance': 0.15,
+            'enable_partial_overlap': True,
+            'overlap_threshold': 0.7,
+            'enable_global_optimization': True,
+            'optimization_strategy': _('Optimisation locale'),
+            'max_iterations': 50,
+            'zonage_direction': 'colonnes',
+            'zonage_size_mm': 10.0,
+            'laser_speed': 25.0,
+            'idle_speed': 2800.0,
+            'SupprimerCouleursNonGerees': True,
+            'SauvegarderSousDecoupe': True,
+            'remove_duplicates_all_colors': False,
+        }
+
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                raw_data = f.read()
+            data = json.loads(raw_data)
+        except Exception:
+            return defaults
+
+        last_used = data.get('last_used', {}) if isinstance(data, dict) else {}
+        params = dict(defaults)
+        params.update({
+            'tolerance': last_used.get('tolerance', defaults['tolerance']),
+            'enable_partial_overlap': last_used.get('enable_partial_overlap', defaults['enable_partial_overlap']),
+            'overlap_threshold': last_used.get('overlap_threshold', defaults['overlap_threshold']),
+            'enable_global_optimization': last_used.get('enable_global_optimization', defaults['enable_global_optimization']),
+            'optimization_strategy': last_used.get('optimization_strategy', defaults['optimization_strategy']),
+            'max_iterations': last_used.get('max_iterations', defaults['max_iterations']),
+            'zonage_direction': last_used.get('zonage_direction', defaults['zonage_direction']),
+            'zonage_size_mm': last_used.get('zonage_size_mm', defaults['zonage_size_mm']),
+            'laser_speed': last_used.get('laser_speed', defaults['laser_speed']),
+            'idle_speed': last_used.get('idle_speed', defaults['idle_speed']),
+            'SupprimerCouleursNonGerees': last_used.get('remove_unmanaged_colors', defaults['SupprimerCouleursNonGerees']),
+            'SauvegarderSousDecoupe': last_used.get('save_as_cutting', defaults['SauvegarderSousDecoupe']),
+            'remove_duplicates_all_colors': last_used.get('remove_duplicates_all_colors', defaults['remove_duplicates_all_colors']),
+        })
+        return params
+
+    def _apply_parameters(self, params):
+        """Applique les paramètres utilisateur ou fallback."""
+        self.tolerance = params.get('tolerance', 0.15)
+        self.enable_partial_overlap = params.get('enable_partial_overlap', True)
+        self.overlap_threshold = params.get('overlap_threshold', 0.7)
+        self.enable_global_optimization = params.get('enable_global_optimization', True)
+        self.optimization_strategy = params.get('optimization_strategy', _('Optimisation locale'))
+        self.max_iterations = params.get('max_iterations', 50)
+        self.zonage_direction = params.get('zonage_direction', 'colonnes')
+        self.zonage_size_mm = params.get('zonage_size_mm', 10.0)
+        self.laser_speed = params.get('laser_speed', 25.0)
+        self.idle_speed = params.get('idle_speed', 2800.0)
+        self.SupprimerCouleursNonGerees = params.get('SupprimerCouleursNonGerees', True)
+        self.SauvegarderSousDecoupe = params.get('SauvegarderSousDecoupe', True)
+        self.remove_duplicates_all_colors = params.get('remove_duplicates_all_colors', False)
     
     def _update_progress_window(self, task_text=None):
         """Met à jour la fenêtre de progression
@@ -2617,7 +2762,7 @@ class OptimLaser(inkex.EffectExtension):
             with open(current_file_name, 'wb') as output_file:
                 self.save(output_file)
         except Exception as e:
-            messagebox.showwarning(_('Attention !'), _('Vous devez enregistrer le fichier puis relancer l\'extension.'))
+            self._show_warning(_('Vous devez enregistrer le fichier puis relancer l\'extension.'))
             return
         
         # % Sauvegarder les éléments gris
