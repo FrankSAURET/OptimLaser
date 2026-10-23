@@ -376,16 +376,24 @@ class OptimLaser(inkex.EffectExtension):
     def kill_other_inkscape_running(self):
         """Ferme toutes les autres instances d'inkscape"""
         if platform.system() == 'Windows':
-            result = subprocess.run(['wmic', 'process', 'where', "name='inkscape.exe'", 'get', 'CreationDate,ProcessId'], text=True, capture_output=True)
-            lines = result.stdout.strip().split('\n')[1:]
+            # wmic est absent des Windows récents : on passe par PowerShell (CIM)
+            ps_cmd = ("Get-CimInstance Win32_Process -Filter \"name='inkscape.exe'\" | "
+                      "ForEach-Object { \"$($_.ProcessId) $($_.CreationDate.ToString('yyyyMMddHHmmss.ffffff'))\" }")
+            try:
+                result = subprocess.run(['powershell', '-NoProfile', '-NonInteractive', '-Command', ps_cmd],
+                                        text=True, capture_output=True, timeout=15)
+            except (OSError, subprocess.SubprocessError):
+                return  # impossible de lister les processus : on ne ferme rien
             processes = []
-            for line in lines:
-                if line != "":
-                    parts = line.split()
-                    pid = parts[1]
-                    creation_date_str = re.sub(r'\+\d+$', '', parts[0])
-                    creation_date = datetime.strptime(creation_date_str, '%Y%m%d%H%M%S.%f')
-                    processes.append((pid, creation_date))
+            for line in result.stdout.splitlines():
+                parts = line.split()
+                if len(parts) != 2:
+                    continue
+                try:
+                    creation_date = datetime.strptime(parts[1], '%Y%m%d%H%M%S.%f')
+                except ValueError:
+                    continue
+                processes.append((parts[0], creation_date))
             processes.sort(key=lambda x: x[1])
             if len(processes) > 1:
                 for process in processes[1:]:
