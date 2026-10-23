@@ -1,6 +1,6 @@
 # Journal des modifications
 
-## 2026.10.0 (prochaine publication)
+## 2026.10.0 (23 octobre 2026)
 
 ### Correction
 
